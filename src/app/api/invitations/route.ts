@@ -1,5 +1,8 @@
 import { NextResponse } from "next/server";
 import { DEFAULT_LOCALE, isLocale } from "@/lib/i18n/locales";
+import type { MessageKey } from "@/lib/i18n/t";
+import { createdEmail } from "@/lib/mail/content";
+import { sendMail } from "@/lib/mail/send";
 import { prisma } from "@/lib/prisma";
 import type { Draft, MascotKind } from "@/lib/types";
 import { validateDraft } from "@/lib/validation";
@@ -15,6 +18,7 @@ function toDraft(body: unknown): Draft | null {
   const raw = body as Record<string, unknown>;
 
   if (typeof raw.recipientName !== "string") return null;
+  if (typeof raw.creatorEmail !== "string") return null;
   if (typeof raw.gateQuestion !== "string") return null;
   if (raw.mascot !== null && !MASCOTS.includes(raw.mascot as MascotKind)) return null;
   if (!Array.isArray(raw.questions)) return null;
@@ -30,6 +34,7 @@ function toDraft(body: unknown): Draft | null {
 
   return {
     recipientName: raw.recipientName,
+    creatorEmail: raw.creatorEmail,
     mascot: (raw.mascot as MascotKind | null) ?? null,
     gateQuestion: raw.gateQuestion,
     questions,
@@ -59,6 +64,7 @@ export async function POST(request: Request) {
   const invitation = await prisma.invitation.create({
     data: {
       recipientName: draft.recipientName.trim(),
+      creatorEmail: draft.creatorEmail.trim(),
       mascot: draft.mascot,
       gateQuestion: draft.gateQuestion.trim(),
       locale: draft.locale,
@@ -76,6 +82,34 @@ export async function POST(request: Request) {
       },
     },
   });
+
+  const link = `${new URL(request.url).origin}/${invitation.locale}/invite/${invitation.id}`;
+  const { subject, text } = createdEmail({
+    locale: draft.locale,
+    recipientName: invitation.recipientName,
+    link,
+  });
+
+  // validateDraft already rejects a blank creatorEmail, so this should be
+  // unreachable in practice — defense in depth, not a behavior change.
+  const notify = invitation.creatorEmail.trim();
+  if (notify) {
+    try {
+      await sendMail({ to: notify, subject, text });
+    } catch (error) {
+      console.error("Failed to send invitation-created email:", error);
+      // Cascades delete the invitation's questions/options — no orphan rows.
+      try {
+        await prisma.invitation.delete({ where: { id: invitation.id } });
+      } catch (rollbackError) {
+        console.error("Rollback failed after email failure:", rollbackError);
+      }
+      return NextResponse.json(
+        { code: "api.emailFailed" satisfies MessageKey },
+        { status: 400 }
+      );
+    }
+  }
 
   return NextResponse.json({ id: invitation.id }, { status: 201 });
 }

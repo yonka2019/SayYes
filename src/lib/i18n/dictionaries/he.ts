@@ -34,6 +34,8 @@ export const he = {
   "builder.back": "← לרשימה",
   "builder.name.label": "למי ההזמנה?",
   "builder.name.placeholder": "השם שלה",
+  "builder.email.label": "האימייל שלך",
+  "builder.email.placeholder": "you@example.com",
   "builder.mascot.label": "איזה קמע ילווה אותה?",
   "builder.gate.label": "שאלת הפתיחה",
   "builder.questions.title": "שאלות הלוגיסטיקה",
@@ -77,6 +79,8 @@ export const he = {
 
   "error.name.required": "צריך למלא שם",
   "error.name.tooLong": "שם ארוך מדי (עד {max} תווים)",
+  "error.email.required": "צריך למלא אימייל",
+  "error.email.invalid": "כתובת אימייל לא תקינה",
   "error.mascot.required": "צריך לבחור קמע",
   "error.gate.required": "צריך שאלת פתיחה",
   "error.text.tooLong": "שאלה ארוכה מדי (עד {max} תווים)",
@@ -94,6 +98,7 @@ export const he = {
   "api.invalidAnswer": "תשובה לא תקינה",
   "api.saveFailed": "לא הצלחנו לשמור, ננסה שוב?",
   "api.createFailed": "משהו נתקע, ננסה שוב?",
+  "api.emailFailed": "לא הצלחנו לשלוח מייל אישור, ננסה שוב?",
 
   "seed.gate": "תרצי לצאת איתי לדייט?",
   "seed.food.q": "מה בא לך לאכול?",
@@ -108,4 +113,9 @@ export const he = {
   "seed.when.a1": "יום חמישי",
   "seed.when.a2": "שישי בערב",
   "seed.when.a3": "מוצאי שבת",
+
+  "email.created.subject": "ההזמנה ל{name} מוכנה 💌",
+  "email.created.body": "ההזמנה ל{name} מוכנה. הקישור לשליחה: {link}",
+  "email.answered.subject": "{name} ענתה על ההזמנה! 🎉",
+  "email.answered.body": "{name} ענתה על ההזמנה שלך. לצפייה בתשובות: {link}",
 } as const;

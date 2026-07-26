@@ -13,6 +13,7 @@ import type { Draft } from "../src/lib/types";
 
 const draft = (over: Partial<Draft> = {}): Draft => ({
   recipientName: "נועה",
+  creatorEmail: "maya@example.com",
   mascot: "BEAR",
   gateQuestion: defaultGateQuestion("he"),
   questions: [{ id: "q1", text: "מה נאכל?", options: ["סושי", "פיצה"] }],
@@ -152,6 +153,21 @@ describe("validateDraft error codes", () => {
     expect(errors.mascot).toEqual({ code: "error.mascot.required" });
     expect(errors.gateQuestion).toEqual({ code: "error.gate.required" });
     expect(errors.questions).toEqual({ code: "error.questions.empty" });
+  });
+
+  it("codes a blank creator email", () => {
+    const { errors } = validateDraft(draft({ creatorEmail: "   " }));
+    expect(errors.creatorEmail).toEqual({ code: "error.email.required" });
+  });
+
+  it("codes a malformed creator email", () => {
+    const { errors } = validateDraft(draft({ creatorEmail: "not-an-email" }));
+    expect(errors.creatorEmail).toEqual({ code: "error.email.invalid" });
+  });
+
+  it("accepts a well-formed creator email", () => {
+    const { errors } = validateDraft(draft({ creatorEmail: "a@b.co" }));
+    expect(errors.creatorEmail).toBeUndefined();
   });
 
   it("distinguishes the four option failures by code", () => {

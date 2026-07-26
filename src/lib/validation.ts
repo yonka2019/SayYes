@@ -8,6 +8,7 @@ import {
 import type { Draft, DraftErrors, FieldError, QuestionFieldErrors } from "./types";
 
 const MASCOTS = ["BEAR", "PENGUIN"] as const;
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 function validateQuestionOptions(options: string[]): FieldError | undefined {
   const labels = options.map((option) => option.trim());
@@ -42,6 +43,13 @@ export function validateDraft(draft: Draft): { valid: boolean; errors: DraftErro
     errors.recipientName = { code: "error.name.required" };
   } else if (name.length > MAX_NAME_LENGTH) {
     errors.recipientName = { code: "error.name.tooLong", params: { max: MAX_NAME_LENGTH } };
+  }
+
+  const email = draft.creatorEmail.trim();
+  if (email.length === 0) {
+    errors.creatorEmail = { code: "error.email.required" };
+  } else if (!EMAIL_PATTERN.test(email)) {
+    errors.creatorEmail = { code: "error.email.invalid" };
   }
 
   if (draft.mascot === null || !MASCOTS.includes(draft.mascot)) {
@@ -79,6 +87,7 @@ export function validateDraft(draft: Draft): { valid: boolean; errors: DraftErro
 
   const valid =
     !errors.recipientName &&
+    !errors.creatorEmail &&
     !errors.mascot &&
     !errors.gateQuestion &&
     !errors.questions &&

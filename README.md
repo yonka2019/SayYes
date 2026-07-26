@@ -69,12 +69,19 @@ on the invite page — the content can't follow a switch there.
 
 ## Setup
 
-You need a Postgres connection string. Free options: [Neon](https://neon.tech)
-or Vercel Postgres. Use Neon's **pooled** string (host contains `-pooler`).
+You need a Postgres connection string and an SMTP password for email notifications.
+
+**Postgres**: Free options: [Neon](https://neon.tech) or Vercel Postgres. Use Neon's
+**pooled** string (host contains `-pooler`).
+
+**Email**: Get an `SMTP_PASSWORD` from [Resend](https://resend.com) (the API key).
+The from-address defaults to `noreply@sayyes.fun`, which must be on a domain
+verified in your Resend account — or set `MAIL_FROM` to an address on a domain
+you have verified instead.
 
 ```bash
 npm install
-cp .env.example .env   # then paste your DATABASE_URL into .env
+cp .env.example .env   # then paste your DATABASE_URL and SMTP_PASSWORD into .env
 npm run db:push        # creates the tables from prisma/schema.prisma
 npm run dev            # http://localhost:3000
 ```
@@ -100,7 +107,7 @@ The invitation link is then a normal public URL, no local server required.
 | `npm run dev` | Dev server |
 | `npm run build` | Production build + type check |
 | `npm start` | Serve the production build |
-| `npm test` | Vitest unit tests (dodge math, builder validation, i18n detection + dictionaries) |
+| `npm test` | Vitest unit tests (dodge math, builder validation, i18n detection + dictionaries, mail content) |
 | `npm run db:push` | Sync the database with the Prisma schema |
 
 ## Routes
@@ -113,8 +120,8 @@ middleware adds the prefix automatically if a request arrives without one.
 | `/{locale}` | creator | Dashboard: every invitation across all locales, each with a locale badge, status, created/answered time, copy link, inline recap for answered ones |
 | `/{locale}/new` | creator | Builder: name, mascot (bear/penguin), gate question, questions with 2–4 options each, in `{locale}` → generates the link |
 | `/{locale}/invite/[token]` | recipient | Gate screen → one question at a time → confetti finale, in the invitation's own locale (redirects here if `{locale}` doesn't match). Reopening an answered link shows a read-only recap. Unknown token gets a cute "not found" card. |
-| `POST /api/invitations` | — | Create an invitation from a builder draft, storing its `locale` |
-| `POST /api/invitations/[token]/answers` | — | Submit all answers, mark the invitation `ANSWERED` |
+| `POST /api/invitations` | — | Create an invitation from a builder draft, storing its `locale`. Returns `201` on success or `400 { code: "api.emailFailed" }` if the creation email fails to send (the invitation is deleted and the request is rolled back). |
+| `POST /api/invitations/[token]/answers` | — | Submit all answers, mark the invitation `ANSWERED`. Returns `200` on success or `400 { code: "api.emailFailed" }` if the answered email fails to send (answers are deleted and the invitation reverts to `PENDING`, rolled back). |
 
 ## Notes
 
@@ -122,9 +129,15 @@ middleware adds the prefix automatically if a request arrives without one.
   Deployed to Vercel it's a normal public URL.
 - No auth: it's a single-user tool, and the dashboard lists **every** invitation
   in the database. Anyone who reaches the deployed `/` sees them all, so treat
-  the URL as private.
+  the URL as private. The create-invitation endpoint sends mail to whatever
+  address the caller supplies, from the verified `noreply@sayyes.fun` domain —
+  so the deployed create-invitation URL must stay private for that reason too,
+  not just because of data exposure.
 - `DATABASE_URL` is required — the app throws a clear error at startup rather
   than failing on the first query.
+- `SMTP_PASSWORD` is required to actually send mail — `src/lib/mail/send.ts`
+  throws a clear error the first time `sendMail()` runs if it's missing (not at
+  import time, so `npm run build` doesn't need it).
 - An invitation can be answered **once**. Reopening it shows her real, first
   answers instead of letting her redo them.
 - Invitations can't be edited after they're generated.
@@ -133,7 +146,7 @@ middleware adds the prefix automatically if a request arrives without one.
 
 ```
 prisma/schema.prisma          Invitation (incl. locale) / Question / QuestionOption / Answer
-.env.example                  the DATABASE_URL you need to fill in
+.env.example                  the DATABASE_URL and SMTP_PASSWORD you need to fill in
 src/middleware.ts              locale detection + redirect to /{locale}/...
 src/lib/dodge.ts               dodge hop math (pure, unit tested); pleas are dictionary keys
 src/lib/validation.ts          builder validation rules (pure, unit tested); returns error codes
@@ -142,12 +155,14 @@ src/lib/types.ts               shared Draft / InviteView / Recap / FieldError ty
 src/lib/i18n/locales.ts        locale list, direction map, resolveLocale(), negotiate()
 src/lib/i18n/t.ts              Dictionary type + getDictionary()/t()/format()
 src/lib/i18n/dictionaries/     he.ts (source of truth), ru.ts, en.ts
+src/lib/mail/                  content.ts (pure {subject,text} builders per locale), send.ts
+                               (nodemailer SMTP transport via Resend, needs SMTP_PASSWORD)
 src/app/[locale]/              routes: /{locale}, /{locale}/new, /{locale}/invite/[token]
 src/app/api/                   /api/invitations, /api/invitations/[token]/answers (no locale prefix)
 src/components/                CuteCard, Mascot, HeartButton, DodgeButton,
                                Sparkles, RecapCard, BuilderForm, InviteFlow,
                                DashboardList, LanguageSwitcher
-tests/                         Vitest specs for dodge + validation + i18n
+tests/                         Vitest specs for dodge + validation + i18n + mail content
 docs/superpowers/plans/        the implementation plans this was built from
 docs/superpowers/specs/        the i18n design spec
 md.md                          the original design spec (local-only, Hebrew-only — superseded)

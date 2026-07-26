@@ -10,8 +10,6 @@ import {
   swapLocale,
 } from "@/lib/i18n/locales";
 import { he } from "@/lib/i18n/dictionaries/he";
-import { ru } from "@/lib/i18n/dictionaries/ru";
-import { en } from "@/lib/i18n/dictionaries/en";
 import { format, getDictionary, t } from "@/lib/i18n/t";
 import {
   MAX_OPTIONS,
@@ -151,7 +149,9 @@ const placeholders = (value: string) =>
   [...value.matchAll(/\{(\w+)\}/g)].map((match) => match[1]).sort();
 
 describe("dictionary integrity", () => {
-  const others = { ru, en } as const;
+  const others = Object.fromEntries(
+    LOCALES.filter((locale) => locale !== "he").map((locale) => [locale, getDictionary(locale)])
+  );
 
   it("every locale has a dictionary", () => {
     for (const locale of LOCALES) {
@@ -219,6 +219,7 @@ describe("builder seeds", () => {
     for (const locale of LOCALES) {
       const { valid } = validateDraft({
         recipientName: "Maya",
+        creatorEmail: "maya@example.com",
         mascot: "BEAR",
         gateQuestion: defaultGateQuestion(locale),
         questions: defaultQuestions(locale),

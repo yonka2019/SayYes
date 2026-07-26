@@ -49,6 +49,7 @@ const inputClass =
 export function BuilderForm({ locale, dict }: { locale: Locale; dict: Dictionary }) {
   const [draft, setDraft] = useState<Draft>({
     recipientName: "",
+    creatorEmail: "",
     mascot: null,
     gateQuestion: defaultGateQuestion(locale),
     questions: defaultQuestions(locale),
@@ -245,6 +246,21 @@ export function BuilderForm({ locale, dict }: { locale: Locale; dict: Dictionary
           />
         </label>
         <FieldErrorText error={visible.recipientName} dict={dict} />
+
+        <label className="mt-6 block">
+          <Label>{t(dict, "builder.email.label")}</Label>
+          <input
+            type="email"
+            name="email"
+            autoComplete="email"
+            dir="ltr"
+            className={`${inputClass} text-left`}
+            value={draft.creatorEmail}
+            placeholder={t(dict, "builder.email.placeholder")}
+            onChange={(event) => patch({ creatorEmail: event.target.value })}
+          />
+        </label>
+        <FieldErrorText error={visible.creatorEmail} dict={dict} />
 
         <div className="mt-6">
           <Label>{t(dict, "builder.mascot.label")}</Label>

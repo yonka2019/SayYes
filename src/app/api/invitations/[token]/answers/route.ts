@@ -1,4 +1,8 @@
 import { NextResponse } from "next/server";
+import { DEFAULT_LOCALE, isLocale } from "@/lib/i18n/locales";
+import type { MessageKey } from "@/lib/i18n/t";
+import { answeredEmail } from "@/lib/mail/content";
+import { sendMail } from "@/lib/mail/send";
 import { prisma } from "@/lib/prisma";
 import type { AnswerSubmission } from "@/lib/types";
 
@@ -78,6 +82,47 @@ export async function POST(
       data: { status: "ANSWERED", answeredAt: new Date() },
     }),
   ]);
+
+  const locale = isLocale(invitation.locale) ? invitation.locale : DEFAULT_LOCALE;
+  const link = `${new URL(request.url).origin}/${locale}`;
+  const { subject, text } = answeredEmail({
+    locale,
+    recipientName: invitation.recipientName,
+    link,
+  });
+
+  // A blank creatorEmail is "nothing to notify", not a send failure — legacy
+  // rows created before creatorEmail was required default to "" and must stay
+  // answerable.
+  const notify = invitation.creatorEmail.trim();
+  if (notify) {
+    try {
+      await sendMail({ to: notify, subject, text });
+    } catch (error) {
+      console.error("Failed to send invitation-answered email:", error);
+      // The recipient can safely retry — nothing from this attempt survives.
+      try {
+        await prisma.$transaction([
+          prisma.answer.deleteMany({
+            where: {
+              invitationId: invitation.id,
+              questionId: { in: submissions.map((s) => s.questionId) },
+            },
+          }),
+          prisma.invitation.update({
+            where: { id: invitation.id },
+            data: { status: "PENDING", answeredAt: null },
+          }),
+        ]);
+      } catch (rollbackError) {
+        console.error("Rollback failed after email failure:", rollbackError);
+      }
+      return NextResponse.json(
+        { code: "api.emailFailed" satisfies MessageKey },
+        { status: 400 }
+      );
+    }
+  }
 
   return NextResponse.json({ ok: true });
 }

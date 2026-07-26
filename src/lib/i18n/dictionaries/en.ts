@@ -29,6 +29,8 @@ export const en: Dictionary = {
   "builder.back": "← Back to list",
   "builder.name.label": "Who's it for?",
   "builder.name.placeholder": "Her name",
+  "builder.email.label": "Your email",
+  "builder.email.placeholder": "you@example.com",
   "builder.mascot.label": "Which mascot goes with her?",
   "builder.gate.label": "The opening question",
   "builder.questions.title": "The logistics questions",
@@ -72,6 +74,8 @@ export const en: Dictionary = {
 
   "error.name.required": "A name is required",
   "error.name.tooLong": "Name is too long (up to {max} characters)",
+  "error.email.required": "An email is required",
+  "error.email.invalid": "Invalid email address",
   "error.mascot.required": "Pick a mascot",
   "error.gate.required": "An opening question is required",
   "error.text.tooLong": "Question is too long (up to {max} characters)",
@@ -89,6 +93,7 @@ export const en: Dictionary = {
   "api.invalidAnswer": "Invalid answer",
   "api.saveFailed": "We couldn't save that — try again?",
   "api.createFailed": "Something jammed — try again?",
+  "api.emailFailed": "We couldn't send the confirmation email — try again?",
 
   "seed.gate": "Will you go on a date with me?",
   "seed.food.q": "What do you feel like eating?",
@@ -103,4 +108,9 @@ export const en: Dictionary = {
   "seed.when.a1": "Thursday",
   "seed.when.a2": "Friday evening",
   "seed.when.a3": "Saturday night",
+
+  "email.created.subject": "The invitation for {name} is ready 💌",
+  "email.created.body": "The invitation for {name} is ready. Link to send: {link}",
+  "email.answered.subject": "{name} answered the invitation! 🎉",
+  "email.answered.body": "{name} answered your invitation. See the answers: {link}",
 };

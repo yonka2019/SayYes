@@ -29,6 +29,8 @@ export const ru: Dictionary = {
   "builder.back": "← К списку",
   "builder.name.label": "Для кого приглашение?",
   "builder.name.placeholder": "Её имя",
+  "builder.email.label": "Ваш email",
+  "builder.email.placeholder": "you@example.com",
   "builder.mascot.label": "Какой талисман её проводит?",
   "builder.gate.label": "Главный вопрос",
   "builder.questions.title": "Вопросы о деталях",
@@ -73,6 +75,8 @@ export const ru: Dictionary = {
 
   "error.name.required": "Нужно указать имя",
   "error.name.tooLong": "Имя слишком длинное (до {max} символов)",
+  "error.email.required": "Нужно указать email",
+  "error.email.invalid": "Некорректный email",
   "error.mascot.required": "Нужно выбрать талисман",
   "error.gate.required": "Нужен главный вопрос",
   "error.text.tooLong": "Вопрос слишком длинный (до {max} символов)",
@@ -90,6 +94,7 @@ export const ru: Dictionary = {
   "api.invalidAnswer": "Некорректный ответ",
   "api.saveFailed": "Не получилось сохранить, попробуем снова?",
   "api.createFailed": "Что-то заело, попробуем снова?",
+  "api.emailFailed": "Не получилось отправить письмо, попробуем снова?",
 
   "seed.gate": "Пойдёшь со мной на свидание?",
   "seed.food.q": "Что хочешь поесть?",
@@ -104,4 +109,9 @@ export const ru: Dictionary = {
   "seed.when.a1": "В четверг",
   "seed.when.a2": "В пятницу вечером",
   "seed.when.a3": "В субботу вечером",
+
+  "email.created.subject": "Приглашение для {name} готово 💌",
+  "email.created.body": "Приглашение для {name} готово. Ссылка для отправки: {link}",
+  "email.answered.subject": "{name} ответила на приглашение! 🎉",
+  "email.answered.body": "{name} ответила на ваше приглашение. Посмотреть ответы: {link}",
 };

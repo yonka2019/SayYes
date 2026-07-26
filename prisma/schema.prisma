@@ -20,6 +20,8 @@ enum Status {
 model Invitation {
   id            String     @id @default(cuid())
   recipientName String
+  /// Where the "created" / "answered" notification emails are sent.
+  creatorEmail  String     @default("")
   mascot        Mascot
   gateQuestion  String
   /// The language the creator authored in. The recipient's chrome follows it.

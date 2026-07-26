@@ -7,7 +7,9 @@ the Postgres/deployment setup and the i18n system below supersede those
 decisions).
 Implementation plans:
 `docs/superpowers/plans/2026-07-26-date-invitation-website.md` (original build),
-`docs/superpowers/plans/2026-07-26-i18n-he-ru-en.md` (he/ru/en localization).
+`docs/superpowers/plans/2026-07-26-i18n-he-ru-en.md` (he/ru/en localization),
+`docs/superpowers/plans/2026-07-26-email-notifications.md` (creator email
+notifications).
 
 ## Hard rules for this project
 
@@ -57,6 +59,13 @@ Implementation plans:
   shrink + plea carry the interaction.
 - **Gate question comes first.** Logistics questions only render after "כן".
 - **One answer set per invitation.** Reopening an answered link is read-only.
+- **The creator's email is required** and stored on `Invitation.creatorEmail`.
+  Two notification emails go out via `src/lib/mail/`: one when an invitation is
+  created (share link) and one when it's answered (dashboard link, no answer
+  recap). Both use the invitation's own locale for the email text. A failed
+  send **fails the request** — the API compensates by rolling back what it
+  just wrote (deleting the invitation, or deleting the just-inserted answers
+  and reverting `ANSWERED` back to `PENDING`) rather than silently continuing.
 - No auth, no deployment, no invitation editing after generation — all out of scope.
 
 ## Architecture
@@ -72,6 +81,12 @@ Implementation plans:
     because the generated client isn't committed. Don't drop it.
   - `src/lib/prisma.ts` throws immediately if `DATABASE_URL` is missing, so the
     failure is a readable message instead of a query-time driver error.
+  - `src/lib/mail/send.ts` throws the first time `sendMail()` actually runs if
+    `SMTP_PASSWORD` is missing — deliberately *not* at module import, unlike
+    `prisma.ts` / `DATABASE_URL`, because Next's build-time "collecting page
+    data" step imports every route module (including the mail one) even though
+    nothing is sent during a build; a top-level throw there would fail
+    `npm run build` on a checkout with no `SMTP_PASSWORD`.
 - **Pure logic lives in `src/lib/` and is unit tested** (`tests/*.test.ts`).
   Anything with a rule worth asserting belongs there, not inside a component.
   - `dodge.ts` — hop math, takes an injectable `rand()` so tests are
@@ -89,6 +104,11 @@ Implementation plans:
     lookup/interpolation helper. `tests/i18n.test.ts` asserts all three
     dictionaries share the exact same key set and the exact same
     `{placeholder}` set per key, so a translation can't silently drift.
+  - `mail/content.ts` — pure `{ subject, text }` builders per locale, unit
+    tested. `mail/send.ts` — the one shared `nodemailer` SMTP transport
+    (`smtp.resend.com:465`), lazily created on first `sendMail()` call rather
+    than at import so `npm run build` doesn't require `SMTP_PASSWORD`; not unit
+    tested (verified manually).
 - Server components query Prisma directly (`/`, `/invite/[token]`); client
   components own interaction state (`BuilderForm`, `InviteFlow`, `DashboardList`).
 - Both dynamic pages set `export const dynamic = "force-dynamic"` so freshly
@@ -117,8 +137,10 @@ Implementation plans:
 ## Verification
 
 ```bash
-npm test          # dodge + validation units
-npm run build     # type check
+npm test          # dodge + validation + i18n + mail-content units (4 suites, 78 tests)
+npm run build     # type check — succeeds without SMTP_PASSWORD; only sending
+                   # mail needs it, not the build (send.ts creates its transport
+                   # lazily on first sendMail() call, not at module import)
 npm run dev       # then click the real flow in a browser
 ```
 
@@ -130,7 +152,11 @@ now repeats **per locale** (`he` RTL, `ru` LTR, `en` LTR): dashboard → switche
 /invite/{token}` redirects to the invitation's own locale; a fresh visit with
 `Accept-Language: ru-RU` lands on `/ru`; an unknown locale segment (`/de`) is a
 `404`; API edges — `409` on an already-answered token, `404` on an unknown
-token, `400` with an `{ code }` body on an invalid draft.
+token, `400` with an `{ code }` body on an invalid draft. With `SMTP_PASSWORD`
+configured, also confirm both notification emails actually arrive: the
+invitation-created email (share link) right after the builder submits, and the
+invitation-answered email (dashboard link) right after the recipient finishes
+the flow.
 
 ## Housekeeping
 

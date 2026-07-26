@@ -17,6 +17,8 @@ export type DraftQuestion = {
 /** Everything the builder collects before an invitation exists in the DB. */
 export type Draft = {
   recipientName: string;
+  /** Where the "invitation created" / "invitation answered" emails go. */
+  creatorEmail: string;
   mascot: MascotKind | null;
   gateQuestion: string;
   questions: DraftQuestion[];
@@ -40,6 +42,7 @@ export type QuestionFieldErrors = {
 
 export type DraftErrors = {
   recipientName?: FieldError;
+  creatorEmail?: FieldError;
   mascot?: FieldError;
   gateQuestion?: FieldError;
   /** Problem with the question list as a whole (e.g. there are none). */
