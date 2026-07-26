@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { DEFAULT_LOCALE, isLocale } from "@/lib/i18n/locales";
 import { prisma } from "@/lib/prisma";
 import type { Draft, MascotKind } from "@/lib/types";
 import { validateDraft } from "@/lib/validation";
@@ -32,6 +33,8 @@ function toDraft(body: unknown): Draft | null {
     mascot: (raw.mascot as MascotKind | null) ?? null,
     gateQuestion: raw.gateQuestion,
     questions,
+    // An absent or unknown locale is not worth a 400 — fall back to the default.
+    locale: isLocale(raw.locale) ? raw.locale : DEFAULT_LOCALE,
   };
 }
 
@@ -40,12 +43,12 @@ export async function POST(request: Request) {
   try {
     body = await request.json();
   } catch {
-    return NextResponse.json({ message: "בקשה לא תקינה" }, { status: 400 });
+    return NextResponse.json({ code: "api.badRequest" }, { status: 400 });
   }
 
   const draft = toDraft(body);
   if (!draft) {
-    return NextResponse.json({ message: "בקשה לא תקינה" }, { status: 400 });
+    return NextResponse.json({ code: "api.badRequest" }, { status: 400 });
   }
 
   const { valid, errors } = validateDraft(draft);
@@ -58,6 +61,7 @@ export async function POST(request: Request) {
       recipientName: draft.recipientName.trim(),
       mascot: draft.mascot,
       gateQuestion: draft.gateQuestion.trim(),
+      locale: draft.locale,
       questions: {
         create: draft.questions.map((question, questionIndex) => ({
           order: questionIndex,

@@ -27,12 +27,12 @@ export async function POST(
   try {
     body = await request.json();
   } catch {
-    return NextResponse.json({ message: "בקשה לא תקינה" }, { status: 400 });
+    return NextResponse.json({ code: "api.badRequest" }, { status: 400 });
   }
 
   const submissions = toSubmissions(body);
   if (!submissions) {
-    return NextResponse.json({ message: "בקשה לא תקינה" }, { status: 400 });
+    return NextResponse.json({ code: "api.badRequest" }, { status: 400 });
   }
 
   const invitation = await prisma.invitation.findUnique({
@@ -41,26 +41,26 @@ export async function POST(
   });
 
   if (!invitation) {
-    return NextResponse.json({ message: "ההזמנה לא נמצאה" }, { status: 404 });
+    return NextResponse.json({ code: "api.notFound" }, { status: 404 });
   }
   if (invitation.status === "ANSWERED") {
-    return NextResponse.json({ message: "ההזמנה כבר נענתה" }, { status: 409 });
+    return NextResponse.json({ code: "api.alreadyAnswered" }, { status: 409 });
   }
 
   // Every question must be answered exactly once, with an option that really
   // belongs to that question.
   if (submissions.length !== invitation.questions.length) {
-    return NextResponse.json({ message: "חסרות תשובות" }, { status: 400 });
+    return NextResponse.json({ code: "api.missingAnswers" }, { status: 400 });
   }
 
   const seen = new Set<string>();
   for (const submission of submissions) {
     const question = invitation.questions.find((item) => item.id === submission.questionId);
     if (!question || seen.has(submission.questionId)) {
-      return NextResponse.json({ message: "תשובה לא תקינה" }, { status: 400 });
+      return NextResponse.json({ code: "api.invalidAnswer" }, { status: 400 });
     }
     if (!question.options.some((option) => option.id === submission.selectedOptionId)) {
-      return NextResponse.json({ message: "תשובה לא תקינה" }, { status: 400 });
+      return NextResponse.json({ code: "api.invalidAnswer" }, { status: 400 });
     }
     seen.add(submission.questionId);
   }

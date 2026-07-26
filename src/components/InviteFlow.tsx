@@ -7,6 +7,8 @@ import { DodgeButton } from "@/components/DodgeButton";
 import { HeartButton } from "@/components/HeartButton";
 import { Mascot } from "@/components/Mascot";
 import { RecapCard } from "@/components/RecapCard";
+import { PLEA_KEYS } from "@/lib/dodge";
+import { t, type Dictionary, type MessageKey } from "@/lib/i18n/t";
 import type { AnswerSubmission, InviteView, MascotMood, RecapItem } from "@/lib/types";
 
 type Stage = "gate" | "questions" | "finale";
@@ -40,12 +42,18 @@ function ProgressDots({ total, current }: { total: number; current: number }) {
   );
 }
 
-export function InviteFlow({ invite }: { invite: InviteView }) {
+export function InviteFlow({
+  invite,
+  dict,
+}: {
+  invite: InviteView;
+  dict: Dictionary;
+}) {
   const [stage, setStage] = useState<Stage>("gate");
   const [index, setIndex] = useState(0);
   const [picks, setPicks] = useState<AnswerSubmission[]>([]);
   const [mood, setMood] = useState<MascotMood>("idle");
-  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [submitError, setSubmitError] = useState<MessageKey | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const moodTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -92,14 +100,19 @@ export function InviteFlow({ invite }: { invite: InviteView }) {
         body: JSON.stringify({ answers }),
       });
       if (!response.ok) {
-        const payload = (await response.json().catch(() => null)) as { message?: string } | null;
-        setSubmitError(payload?.message ?? "לא הצלחנו לשמור, ננסה שוב?");
+        // The API answers with a code, not a sentence — translate it here.
+        const payload = (await response.json().catch(() => null)) as { code?: string } | null;
+        setSubmitError(
+          payload?.code && payload.code in dict
+            ? (payload.code as MessageKey)
+            : "api.saveFailed"
+        );
         return;
       }
       setMood("cheer");
       setStage("finale");
     } catch {
-      setSubmitError("לא הצלחנו לשמור, ננסה שוב?");
+      setSubmitError("api.saveFailed");
     } finally {
       setSubmitting(false);
     }
@@ -123,17 +136,29 @@ export function InviteFlow({ invite }: { invite: InviteView }) {
     return { question: question?.text ?? "", answer: option?.label ?? "" };
   });
 
+  const mascotLabel = t(
+    dict,
+    invite.mascot === "BEAR" ? "mascot.bear" : "mascot.penguin"
+  );
+  const pleas = PLEA_KEYS.map((key) => t(dict, key));
+
   if (stage === "gate") {
     return (
-      <CuteCard top={<Mascot kind={invite.mascot} mood={mood} size={190} />}>
+      <CuteCard
+        top={<Mascot kind={invite.mascot} mood={mood} size={190} label={mascotLabel} />}
+      >
         <p className="mb-3 text-center text-rose-ink/60">
-          היי {invite.recipientName}, יש לי משהו לשאול...
+          {t(dict, "invite.gate.intro", { name: invite.recipientName })}
         </p>
         <SpeechBubble>{invite.gateQuestion}</SpeechBubble>
 
         <div className="mt-6 flex flex-col items-center">
-          <HeartButton label="כן" onClick={() => setStage("questions")} />
-          <DodgeButton label="לא" onDodge={() => flashMood("blush", 1200)} />
+          <HeartButton label={t(dict, "invite.yes")} onClick={() => setStage("questions")} />
+          <DodgeButton
+            label={t(dict, "invite.no")}
+            pleas={pleas}
+            onDodge={() => flashMood("blush", 1200)}
+          />
         </div>
       </CuteCard>
     );
@@ -142,7 +167,9 @@ export function InviteFlow({ invite }: { invite: InviteView }) {
   if (stage === "questions") {
     const question = invite.questions[index];
     return (
-      <CuteCard top={<Mascot kind={invite.mascot} mood={mood} size={170} />}>
+      <CuteCard
+        top={<Mascot kind={invite.mascot} mood={mood} size={170} label={mascotLabel} />}
+      >
         <ProgressDots total={invite.questions.length} current={index} />
 
         <AnimatePresence mode="wait">
@@ -175,13 +202,13 @@ export function InviteFlow({ invite }: { invite: InviteView }) {
 
         {submitError && (
           <div className="mt-4 text-center">
-            <p className="font-bold text-rose-deep">{submitError}</p>
+            <p className="font-bold text-rose-deep">{t(dict, submitError)}</p>
             <button
               type="button"
               onClick={() => void submit(picks)}
               className="mt-2 rounded-2xl bg-gradient-to-b from-rose-soft to-rose-deep px-6 py-2.5 font-bold text-white"
             >
-              ניסיון נוסף
+              {t(dict, "invite.retry")}
             </button>
           </div>
         )}
@@ -190,13 +217,21 @@ export function InviteFlow({ invite }: { invite: InviteView }) {
   }
 
   return (
-    <CuteCard top={<Mascot kind={invite.mascot} mood="cheer" size={190} />}>
-      <h2 className="text-center text-3xl font-bold text-rose-deep">יש!! 🎉</h2>
+    <CuteCard
+      top={<Mascot kind={invite.mascot} mood="cheer" size={190} label={mascotLabel} />}
+    >
+      <h2 className="text-center text-3xl font-bold text-rose-deep">
+        {t(dict, "invite.finale.title")}
+      </h2>
       <p className="mt-2 text-center text-lg text-rose-ink/70">
-        תודה {invite.recipientName}, אני כבר מתרגש. נתראה!
+        {t(dict, "invite.finale.text", { name: invite.recipientName })}
       </p>
       <div className="mt-6">
-        <RecapCard items={recap} />
+        <RecapCard
+          items={recap}
+          title={t(dict, "recap.title")}
+          emptyText={t(dict, "recap.empty")}
+        />
       </div>
     </CuteCard>
   );

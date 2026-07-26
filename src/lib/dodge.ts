@@ -1,5 +1,5 @@
 /**
- * Dodge math for the "לא" button.
+ * Dodge math for the "no" button.
  *
  * The svidos reference does a *small* hop (~20-50px) to a nearby spot on every
  * hover — not an escalating full-screen chase. This module is the whole rule
@@ -133,17 +133,17 @@ export function scaleForCatches(catches: number): number {
   return Math.max(MIN_SCALE, SHRINK_PER_CATCH ** catches);
 }
 
-/** Escalating pleas shown once she starts landing clicks on "לא". */
-export const PLEAS = [
-  "בבקשה 🥺",
-  "בבקשה בבקשה 😢",
-  "תשקלי את זה שוב? 🥹",
-  "אני כבר נשבר 😭",
-  "אנא ממך 🥺💔",
-] as const;
+/**
+ * Escalating pleas shown once she starts landing clicks on the dodge button.
+ * Keys, not sentences — the strings live in the dictionaries so all three
+ * languages escalate the same way.
+ */
+export const PLEA_KEYS = ["plea.1", "plea.2", "plea.3", "plea.4", "plea.5"] as const;
 
-/** The plea for `catches` clicks — nothing before the first, clamped at the last. */
-export function pleaForCatches(catches: number): string | null {
+export type PleaKey = (typeof PLEA_KEYS)[number];
+
+/** The plea key for `catches` clicks — nothing before the first, clamped at the last. */
+export function pleaKeyForCatches(catches: number): PleaKey | null {
   if (catches < 1) return null;
-  return PLEAS[Math.min(catches, PLEAS.length) - 1];
+  return PLEA_KEYS[Math.min(catches, PLEA_KEYS.length) - 1];
 }

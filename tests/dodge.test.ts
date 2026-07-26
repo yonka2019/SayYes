@@ -5,10 +5,10 @@ import {
   MIN_FLEE,
   MIN_HOP,
   MIN_SCALE,
-  PLEAS,
+  PLEA_KEYS,
   nextDodgeOffset,
   nextFleeOffset,
-  pleaForCatches,
+  pleaKeyForCatches,
   scaleForCatches,
   type Offset,
 } from "../src/lib/dodge";
@@ -131,19 +131,25 @@ describe("scaleForCatches", () => {
   });
 });
 
-describe("pleaForCatches", () => {
+describe("pleaKeyForCatches", () => {
   it("says nothing until she lands a click", () => {
-    expect(pleaForCatches(0)).toBeNull();
+    expect(pleaKeyForCatches(0)).toBeNull();
+    expect(pleaKeyForCatches(-1)).toBeNull();
   });
 
   it("escalates with each catch", () => {
-    expect(pleaForCatches(1)).toBe(PLEAS[0]);
-    expect(pleaForCatches(2)).toBe(PLEAS[1]);
-    expect(pleaForCatches(3)).toBe(PLEAS[2]);
+    expect(pleaKeyForCatches(1)).toBe(PLEA_KEYS[0]);
+    expect(pleaKeyForCatches(2)).toBe(PLEA_KEYS[1]);
+    expect(pleaKeyForCatches(3)).toBe(PLEA_KEYS[2]);
   });
 
   it("holds on the last plea instead of running out", () => {
-    expect(pleaForCatches(PLEAS.length)).toBe(PLEAS[PLEAS.length - 1]);
-    expect(pleaForCatches(99)).toBe(PLEAS[PLEAS.length - 1]);
+    expect(pleaKeyForCatches(PLEA_KEYS.length)).toBe(PLEA_KEYS[PLEA_KEYS.length - 1]);
+    expect(pleaKeyForCatches(99)).toBe(PLEA_KEYS[PLEA_KEYS.length - 1]);
+  });
+
+  it("returns keys, so every language escalates the same way", () => {
+    expect(pleaKeyForCatches(1)).toBe("plea.1");
+    expect(PLEA_KEYS).toHaveLength(5);
   });
 });

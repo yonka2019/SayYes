@@ -22,6 +22,8 @@ model Invitation {
   recipientName String
   mascot        Mascot
   gateQuestion  String
+  /// The language the creator authored in. The recipient's chrome follows it.
+  locale        String     @default("he")
   status        Status     @default(PENDING)
   createdAt     DateTime   @default(now())
   answeredAt    DateTime?

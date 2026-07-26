@@ -1,13 +1,22 @@
 import { describe, expect, it } from "vitest";
-import { DEFAULT_GATE_QUESTION, defaultQuestions } from "../src/lib/defaults";
+import {
+  MAX_NAME_LENGTH,
+  MAX_OPTION_LENGTH,
+  MAX_OPTIONS,
+  MAX_TEXT_LENGTH,
+  MIN_OPTIONS,
+  defaultGateQuestion,
+  defaultQuestions,
+} from "../src/lib/defaults";
 import { validateDraft } from "../src/lib/validation";
 import type { Draft } from "../src/lib/types";
 
 const draft = (over: Partial<Draft> = {}): Draft => ({
   recipientName: "נועה",
   mascot: "BEAR",
-  gateQuestion: DEFAULT_GATE_QUESTION,
+  gateQuestion: defaultGateQuestion("he"),
   questions: [{ id: "q1", text: "מה נאכל?", options: ["סושי", "פיצה"] }],
+  locale: "he",
   ...over,
 });
 
@@ -19,7 +28,7 @@ describe("validateDraft", () => {
   });
 
   it("accepts the pre-loaded defaults once a name and mascot are set", () => {
-    expect(validateDraft(draft({ questions: defaultQuestions() })).valid).toBe(true);
+    expect(validateDraft(draft({ questions: defaultQuestions("he") })).valid).toBe(true);
   });
 
   it("rejects a blank recipient name", () => {
@@ -99,5 +108,68 @@ describe("validateDraft", () => {
     );
     expect(errors.byQuestion.ok).toBeUndefined();
     expect(errors.byQuestion.bad?.options).toBeTruthy();
+  });
+});
+
+describe("validateDraft error codes", () => {
+  it("reports a blank name as a code, not a sentence", () => {
+    const { errors } = validateDraft(draft({ recipientName: "   " }));
+    expect(errors.recipientName).toEqual({ code: "error.name.required" });
+  });
+
+  it("carries the limit as a param rather than baking it into a sentence", () => {
+    const { errors } = validateDraft(
+      draft({ recipientName: "x".repeat(MAX_NAME_LENGTH + 1) })
+    );
+    expect(errors.recipientName).toEqual({
+      code: "error.name.tooLong",
+      params: { max: MAX_NAME_LENGTH },
+    });
+  });
+
+  it("uses the same too-long code for the gate and for a question", () => {
+    const long = "x".repeat(MAX_TEXT_LENGTH + 1);
+    const { errors } = validateDraft(
+      draft({
+        gateQuestion: long,
+        questions: [{ id: "q1", text: long, options: ["a", "b"] }],
+      })
+    );
+    expect(errors.gateQuestion).toEqual({
+      code: "error.text.tooLong",
+      params: { max: MAX_TEXT_LENGTH },
+    });
+    expect(errors.byQuestion.q1?.text).toEqual({
+      code: "error.text.tooLong",
+      params: { max: MAX_TEXT_LENGTH },
+    });
+  });
+
+  it("codes the mascot, gate and empty-question-list failures", () => {
+    const { errors } = validateDraft(
+      draft({ mascot: null, gateQuestion: "", questions: [] })
+    );
+    expect(errors.mascot).toEqual({ code: "error.mascot.required" });
+    expect(errors.gateQuestion).toEqual({ code: "error.gate.required" });
+    expect(errors.questions).toEqual({ code: "error.questions.empty" });
+  });
+
+  it("distinguishes the four option failures by code", () => {
+    const optionsErrorFor = (options: string[]) =>
+      validateDraft(draft({ questions: [{ id: "q1", text: "?", options }] })).errors
+        .byQuestion.q1?.options;
+
+    expect(optionsErrorFor(["only-one"])).toEqual({
+      code: "error.options.count",
+      params: { min: MIN_OPTIONS, max: MAX_OPTIONS },
+    });
+    expect(optionsErrorFor(["a", "  "])).toEqual({ code: "error.options.empty" });
+    expect(optionsErrorFor(["a", "x".repeat(MAX_OPTION_LENGTH + 1)])).toEqual({
+      code: "error.options.tooLong",
+      params: { max: MAX_OPTION_LENGTH },
+    });
+    expect(optionsErrorFor(["same", "same"])).toEqual({
+      code: "error.options.duplicate",
+    });
   });
 });

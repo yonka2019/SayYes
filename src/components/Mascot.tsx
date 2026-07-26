@@ -152,17 +152,22 @@ function Penguin({ blushOpacity, mood }: { blushOpacity: number; mood: MascotMoo
 
 /**
  * Bear or penguin, reacting with small animations at the key moments:
- * hovering "לא" (blush), picking an answer (wave), the finale (cheer).
+ * a dodge (blush), picking an answer (wave), the finale (cheer).
+ *
+ * `label` is required rather than defaulted — the accessible name has to be in
+ * the viewer's language, which only the caller knows.
  */
 export function Mascot({
   kind,
   mood = "idle",
   size = 180,
+  label,
   className = "",
 }: {
   kind: MascotKind;
   mood?: MascotMood;
   size?: number;
+  label: string;
   className?: string;
 }) {
   const blushOpacity = mood === "blush" || mood === "cheer" ? 0.95 : 0.4;
@@ -174,7 +179,7 @@ export function Mascot({
       height={size}
       className={className}
       role="img"
-      aria-label={kind === "BEAR" ? "דובי" : "פינגווין"}
+      aria-label={label}
       animate={bodyMotion[mood]}
       transition={{ ...bodyTiming[mood], repeat: Infinity, ease: "easeInOut" }}
     >

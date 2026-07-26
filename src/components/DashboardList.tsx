@@ -5,6 +5,8 @@ import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Mascot } from "@/components/Mascot";
 import { RecapCard } from "@/components/RecapCard";
+import { LOCALE_NAMES, type Locale } from "@/lib/i18n/locales";
+import { t, type Dictionary, type MessageKey } from "@/lib/i18n/t";
 import type { InvitationStatus, MascotKind, RecapItem } from "@/lib/types";
 
 export type DashboardItem = {
@@ -14,10 +16,15 @@ export type DashboardItem = {
   status: InvitationStatus;
   createdLabel: string;
   answeredLabel: string | null;
+  /** The invitation's own locale — drives its badge and its link prefix. */
+  locale: Locale;
   recap: RecapItem[];
 };
 
-function StatusBadge({ status }: { status: InvitationStatus }) {
+const mascotKey = (kind: MascotKind): MessageKey =>
+  kind === "BEAR" ? "mascot.bear" : "mascot.penguin";
+
+function StatusBadge({ status, dict }: { status: InvitationStatus; dict: Dictionary }) {
   const answered = status === "ANSWERED";
   return (
     <span
@@ -25,19 +32,47 @@ function StatusBadge({ status }: { status: InvitationStatus }) {
         answered ? "bg-rose-deep text-white" : "bg-blush-deep text-rose-ink/70"
       }`}
     >
-      {answered ? "נענתה" : "ממתינה"}
+      {answered ? t(dict, "dashboard.status.answered") : t(dict, "dashboard.status.pending")}
     </span>
   );
 }
 
-export function DashboardList({ items }: { items: DashboardItem[] }) {
+/** Which language this invitation was written in — the list can be mixed. */
+function LocaleBadge({ locale }: { locale: Locale }) {
+  return (
+    <span
+      lang={locale}
+      title={LOCALE_NAMES[locale]}
+      className="rounded-full bg-blush px-2 py-1 text-xs font-bold uppercase text-rose-deep"
+    >
+      {locale}
+    </span>
+  );
+}
+
+/**
+ * `locale` is the *viewer's* — it is used only for the empty-state "create one"
+ * link, since there is no invitation to take a locale from yet. Every
+ * per-invitation link uses that invitation's own `item.locale`.
+ */
+export function DashboardList({
+  items,
+  dict,
+  locale,
+}: {
+  items: DashboardItem[];
+  dict: Dictionary;
+  locale: Locale;
+}) {
   const [openId, setOpenId] = useState<string | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
-  async function copyLink(id: string) {
+  async function copyLink(item: DashboardItem) {
     try {
-      await navigator.clipboard.writeText(`${window.location.origin}/invite/${id}`);
-      setCopiedId(id);
+      await navigator.clipboard.writeText(
+        `${window.location.origin}/${item.locale}/invite/${item.id}`
+      );
+      setCopiedId(item.id);
       setTimeout(() => setCopiedId(null), 2000);
     } catch {
       setCopiedId(null);
@@ -48,14 +83,14 @@ export function DashboardList({ items }: { items: DashboardItem[] }) {
     return (
       <div className="rounded-[2.5rem] bg-white p-10 text-center shadow-[0_18px_50px_-28px_rgba(232,74,127,0.45)]">
         <div className="mx-auto w-fit">
-          <Mascot kind="BEAR" mood="wave" size={150} />
+          <Mascot kind="BEAR" mood="wave" size={150} label={t(dict, "mascot.bear")} />
         </div>
-        <p className="mt-2 text-lg text-rose-ink/70">עוד לא יצרתם הזמנות.</p>
+        <p className="mt-2 text-lg text-rose-ink/70">{t(dict, "dashboard.empty.text")}</p>
         <Link
-          href="/new"
+          href={`/${locale}/new`}
           className="mt-5 inline-block rounded-2xl bg-gradient-to-b from-rose-soft to-rose-deep px-6 py-3 text-lg font-bold text-white"
         >
-          יצירת ההזמנה הראשונה
+          {t(dict, "dashboard.empty.cta")}
         </Link>
       </div>
     );
@@ -75,28 +110,40 @@ export function DashboardList({ items }: { items: DashboardItem[] }) {
             <div className="p-4">
               <div className="flex items-center gap-3">
                 <div className="shrink-0">
-                  <Mascot kind={item.mascot} mood="idle" size={56} />
+                  <Mascot
+                    kind={item.mascot}
+                    mood="idle"
+                    size={56}
+                    label={t(dict, mascotKey(item.mascot))}
+                  />
                 </div>
 
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-lg font-bold text-rose-ink">{item.recipientName}</p>
                   <p className="text-xs text-rose-ink/60 sm:text-sm">
-                    נוצרה {item.createdLabel}
-                    {item.answeredLabel ? ` · נענתה ${item.answeredLabel}` : ""}
+                    {t(dict, "dashboard.createdAt", { date: item.createdLabel })}
+                    {item.answeredLabel
+                      ? ` · ${t(dict, "dashboard.answeredAt", { date: item.answeredLabel })}`
+                      : ""}
                   </p>
                 </div>
 
-                <StatusBadge status={item.status} />
+                <div className="flex shrink-0 flex-wrap items-center justify-end gap-2">
+                  <LocaleBadge locale={item.locale} />
+                  <StatusBadge status={item.status} dict={dict} />
+                </div>
               </div>
 
               {/* Own row so the buttons never overflow a phone-width card. */}
               <div className="mt-3 flex flex-wrap gap-2">
                 <button
                   type="button"
-                  onClick={() => copyLink(item.id)}
+                  onClick={() => copyLink(item)}
                   className="rounded-xl bg-blush px-3 py-2 text-sm font-bold text-rose-deep transition hover:bg-blush-deep"
                 >
-                  {copiedId === item.id ? "הועתק!" : "העתקת קישור"}
+                  {copiedId === item.id
+                    ? t(dict, "dashboard.copied")
+                    : t(dict, "dashboard.copy")}
                 </button>
                 {canExpand ? (
                   <button
@@ -104,14 +151,14 @@ export function DashboardList({ items }: { items: DashboardItem[] }) {
                     onClick={() => setOpenId(open ? null : item.id)}
                     className="rounded-xl bg-blush px-3 py-2 text-sm font-bold text-rose-deep transition hover:bg-blush-deep"
                   >
-                    {open ? "סגירה" : "התשובות"}
+                    {open ? t(dict, "dashboard.close") : t(dict, "dashboard.answers")}
                   </button>
                 ) : (
                   <Link
-                    href={`/invite/${item.id}`}
+                    href={`/${item.locale}/invite/${item.id}`}
                     className="rounded-xl bg-blush px-3 py-2 text-sm font-bold text-rose-deep transition hover:bg-blush-deep"
                   >
-                    פתיחה
+                    {t(dict, "dashboard.open")}
                   </Link>
                 )}
               </div>
@@ -127,7 +174,11 @@ export function DashboardList({ items }: { items: DashboardItem[] }) {
                   className="overflow-hidden"
                 >
                   <div className="px-4 pb-4">
-                    <RecapCard items={item.recap} title={`מה ${item.recipientName} בחרה`} />
+                    <RecapCard
+                      items={item.recap}
+                      title={t(dict, "dashboard.recapTitle", { name: item.recipientName })}
+                      emptyText={t(dict, "recap.empty")}
+                    />
                   </div>
                 </motion.div>
               )}

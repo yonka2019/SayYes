@@ -1,15 +1,22 @@
 import type { RecapItem } from "@/lib/types";
 
-/** The "here's everything you picked" list — shared by the finale and dashboard. */
+/**
+ * The "here's everything you picked" list — shared by the finale and dashboard.
+ *
+ * `title` and `emptyText` have no defaults on purpose: a default would be a
+ * user-facing string literal in one fixed language.
+ */
 export function RecapCard({
   items,
-  title = "מה שסגרנו",
+  title,
+  emptyText,
 }: {
   items: RecapItem[];
-  title?: string;
+  title: string;
+  emptyText: string;
 }) {
   if (items.length === 0) {
-    return <p className="text-center text-rose-ink/60">אין עדיין תשובות</p>;
+    return <p className="text-center text-rose-ink/60">{emptyText}</p>;
   }
 
   return (

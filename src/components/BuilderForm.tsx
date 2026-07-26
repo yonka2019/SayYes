@@ -5,25 +5,38 @@ import { useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Mascot } from "@/components/Mascot";
 import {
-  DEFAULT_GATE_QUESTION,
   MAX_OPTIONS,
   MIN_OPTIONS,
+  defaultGateQuestion,
   defaultQuestions,
   emptyQuestion,
 } from "@/lib/defaults";
-import type { Draft, DraftErrors, DraftQuestion, MascotKind } from "@/lib/types";
+import type { Locale } from "@/lib/i18n/locales";
+import { t, type Dictionary, type MessageKey } from "@/lib/i18n/t";
+import type {
+  Draft,
+  DraftErrors,
+  DraftQuestion,
+  FieldError,
+  MascotKind,
+} from "@/lib/types";
 import { validateDraft } from "@/lib/validation";
 
-const MASCOT_LABELS: Record<MascotKind, string> = {
-  BEAR: "דובי",
-  PENGUIN: "פינגווין",
-};
+const MASCOT_KINDS: MascotKind[] = ["BEAR", "PENGUIN"];
+
+const mascotKey = (kind: MascotKind): MessageKey =>
+  kind === "BEAR" ? "mascot.bear" : "mascot.penguin";
 
 const EMPTY_ERRORS: DraftErrors = { byQuestion: {} };
 
-function FieldError({ message }: { message?: string }) {
-  if (!message) return null;
-  return <p className="mt-1 text-sm font-bold text-rose-deep">{message}</p>;
+/** Renders a validation code in the creator's language. */
+function FieldErrorText({ error, dict }: { error?: FieldError; dict: Dictionary }) {
+  if (!error) return null;
+  return (
+    <p className="mt-1 text-sm font-bold text-rose-deep">
+      {t(dict, error.code, error.params)}
+    </p>
+  );
 }
 
 function Label({ children }: { children: React.ReactNode }) {
@@ -33,16 +46,17 @@ function Label({ children }: { children: React.ReactNode }) {
 const inputClass =
   "w-full rounded-2xl border-2 border-blush-deep bg-white px-4 py-3 text-lg outline-none transition focus:border-rose-soft";
 
-export function BuilderForm() {
+export function BuilderForm({ locale, dict }: { locale: Locale; dict: Dictionary }) {
   const [draft, setDraft] = useState<Draft>({
     recipientName: "",
     mascot: null,
-    gateQuestion: DEFAULT_GATE_QUESTION,
-    questions: defaultQuestions(),
+    gateQuestion: defaultGateQuestion(locale),
+    questions: defaultQuestions(locale),
+    locale,
   });
   const [showErrors, setShowErrors] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  const [serverError, setServerError] = useState<string | null>(null);
+  const [serverError, setServerError] = useState<MessageKey | null>(null);
   const [createdId, setCreatedId] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const nextId = useRef(0);
@@ -115,6 +129,10 @@ export function BuilderForm() {
       ),
     }));
 
+  /** The API answers with a code, not a sentence — translate it here. */
+  const codeFrom = (value: unknown, fallback: MessageKey): MessageKey =>
+    typeof value === "string" && value in dict ? (value as MessageKey) : fallback;
+
   async function generate() {
     setShowErrors(true);
     setServerError(null);
@@ -128,22 +146,23 @@ export function BuilderForm() {
         body: JSON.stringify(draft),
       });
       if (!response.ok) {
-        const payload = (await response.json().catch(() => null)) as { message?: string } | null;
-        setServerError(payload?.message ?? "משהו נתקע, ננסה שוב?");
+        const payload = (await response.json().catch(() => null)) as { code?: string } | null;
+        setServerError(codeFrom(payload?.code, "api.createFailed"));
         return;
       }
       const { id } = (await response.json()) as { id: string };
       setCreatedId(id);
     } catch {
-      setServerError("משהו נתקע, ננסה שוב?");
+      setServerError("api.createFailed");
     } finally {
       setSubmitting(false);
     }
   }
 
+  // The link carries the locale the form was filled in — the invitation owns it.
   const shareLink =
     createdId && typeof window !== "undefined"
-      ? `${window.location.origin}/invite/${createdId}`
+      ? `${window.location.origin}/${locale}/invite/${createdId}`
       : null;
 
   async function copyLink() {
@@ -158,6 +177,7 @@ export function BuilderForm() {
   }
 
   if (createdId) {
+    const chosen = draft.mascot ?? "BEAR";
     return (
       <motion.div
         initial={{ opacity: 0, y: 16 }}
@@ -165,10 +185,10 @@ export function BuilderForm() {
         className="rounded-[2.5rem] bg-white p-8 text-center shadow-[0_24px_60px_-24px_rgba(232,74,127,0.4)]"
       >
         <div className="mx-auto mb-2 w-fit">
-          <Mascot kind={draft.mascot ?? "BEAR"} mood="cheer" size={150} />
+          <Mascot kind={chosen} mood="cheer" size={150} label={t(dict, mascotKey(chosen))} />
         </div>
-        <h2 className="text-2xl font-bold text-rose-deep">ההזמנה מוכנה!</h2>
-        <p className="mt-2 text-rose-ink/70">שלחו לה את הקישור הזה:</p>
+        <h2 className="text-2xl font-bold text-rose-deep">{t(dict, "builder.done.title")}</h2>
+        <p className="mt-2 text-rose-ink/70">{t(dict, "builder.done.subtitle")}</p>
 
         <div className="mt-5 flex flex-col gap-3 sm:flex-row">
           <input
@@ -183,26 +203,26 @@ export function BuilderForm() {
             onClick={copyLink}
             className="rounded-2xl bg-gradient-to-b from-rose-soft to-rose-deep px-6 py-3 text-lg font-bold text-white transition hover:brightness-105"
           >
-            {copied ? "הועתק!" : "העתקה"}
+            {copied ? t(dict, "builder.done.copied") : t(dict, "builder.done.copy")}
           </button>
         </div>
 
         <p className="mt-4 rounded-2xl bg-blush px-4 py-3 text-sm text-rose-ink/70">
-          הקישור עובד רק כל עוד השרת המקומי רץ במחשב שלכם.
+          {t(dict, "builder.done.note")}
         </p>
 
         <div className="mt-6 flex flex-wrap justify-center gap-3">
           <Link
-            href={`/invite/${createdId}`}
+            href={`/${locale}/invite/${createdId}`}
             className="rounded-2xl border-2 border-rose-soft px-5 py-2.5 font-bold text-rose-deep transition hover:bg-blush"
           >
-            תצוגה מקדימה
+            {t(dict, "builder.done.preview")}
           </Link>
           <Link
-            href="/"
+            href={`/${locale}`}
             className="rounded-2xl border-2 border-blush-deep px-5 py-2.5 font-bold text-rose-ink/70 transition hover:bg-blush"
           >
-            חזרה לרשימה
+            {t(dict, "builder.done.back")}
           </Link>
         </div>
       </motion.div>
@@ -216,21 +236,22 @@ export function BuilderForm() {
     <div className="space-y-6">
       <section className="rounded-[2.5rem] bg-white p-6 shadow-[0_18px_50px_-28px_rgba(232,74,127,0.45)]">
         <label className="block">
-          <Label>למי ההזמנה?</Label>
+          <Label>{t(dict, "builder.name.label")}</Label>
           <input
             className={inputClass}
             value={draft.recipientName}
-            placeholder="השם שלה"
+            placeholder={t(dict, "builder.name.placeholder")}
             onChange={(event) => patch({ recipientName: event.target.value })}
           />
         </label>
-        <FieldError message={visible.recipientName} />
+        <FieldErrorText error={visible.recipientName} dict={dict} />
 
         <div className="mt-6">
-          <Label>איזה קמע ילווה אותה?</Label>
+          <Label>{t(dict, "builder.mascot.label")}</Label>
           <div className="grid grid-cols-2 gap-4">
-            {(Object.keys(MASCOT_LABELS) as MascotKind[]).map((kind) => {
+            {MASCOT_KINDS.map((kind) => {
               const selected = draft.mascot === kind;
+              const name = t(dict, mascotKey(kind));
               return (
                 <button
                   key={kind}
@@ -243,29 +264,36 @@ export function BuilderForm() {
                       : "border-blush-deep bg-white hover:bg-blush/60"
                   }`}
                 >
-                  <Mascot kind={kind} mood={selected ? "wave" : "idle"} size={110} />
-                  <span className="font-bold">{MASCOT_LABELS[kind]}</span>
+                  <Mascot
+                    kind={kind}
+                    mood={selected ? "wave" : "idle"}
+                    size={110}
+                    label={name}
+                  />
+                  <span className="font-bold">{name}</span>
                 </button>
               );
             })}
           </div>
-          <FieldError message={visible.mascot} />
+          <FieldErrorText error={visible.mascot} dict={dict} />
         </div>
 
         <label className="mt-6 block">
-          <Label>שאלת הפתיחה</Label>
+          <Label>{t(dict, "builder.gate.label")}</Label>
           <input
             className={inputClass}
             value={draft.gateQuestion}
             onChange={(event) => patch({ gateQuestion: event.target.value })}
           />
         </label>
-        <FieldError message={visible.gateQuestion} />
+        <FieldErrorText error={visible.gateQuestion} dict={dict} />
       </section>
 
       <section className="space-y-4">
-        <h2 className="px-2 text-xl font-bold text-rose-deep">שאלות הלוגיסטיקה</h2>
-        <FieldError message={visible.questions} />
+        <h2 className="px-2 text-xl font-bold text-rose-deep">
+          {t(dict, "builder.questions.title")}
+        </h2>
+        <FieldErrorText error={visible.questions} dict={dict} />
 
         <AnimatePresence initial={false}>
           {draft.questions.map((question, index) => {
@@ -287,13 +315,13 @@ export function BuilderForm() {
                   <input
                     className={`${inputClass} flex-1 basis-52`}
                     value={question.text}
-                    placeholder="מה נשאל?"
+                    placeholder={t(dict, "builder.question.placeholder")}
                     onChange={(event) => patchQuestion(question.id, { text: event.target.value })}
                   />
                   <div className="ms-auto flex shrink-0 gap-1">
                     <button
                       type="button"
-                      aria-label="הזזה למעלה"
+                      aria-label={t(dict, "builder.moveUp")}
                       onClick={() => moveQuestion(index, -1)}
                       disabled={index === 0}
                       className="grid h-9 w-9 place-items-center rounded-xl bg-blush text-rose-deep disabled:opacity-30"
@@ -302,7 +330,7 @@ export function BuilderForm() {
                     </button>
                     <button
                       type="button"
-                      aria-label="הזזה למטה"
+                      aria-label={t(dict, "builder.moveDown")}
                       onClick={() => moveQuestion(index, 1)}
                       disabled={index === draft.questions.length - 1}
                       className="grid h-9 w-9 place-items-center rounded-xl bg-blush text-rose-deep disabled:opacity-30"
@@ -311,7 +339,7 @@ export function BuilderForm() {
                     </button>
                     <button
                       type="button"
-                      aria-label="מחיקת שאלה"
+                      aria-label={t(dict, "builder.removeQuestion")}
                       onClick={() => removeQuestion(question.id)}
                       className="grid h-9 w-9 place-items-center rounded-xl bg-blush text-rose-deep"
                     >
@@ -319,7 +347,7 @@ export function BuilderForm() {
                     </button>
                   </div>
                 </div>
-                <FieldError message={questionErrors?.text} />
+                <FieldErrorText error={questionErrors?.text} dict={dict} />
 
                 <div className="mt-3 space-y-2">
                   {question.options.map((option, optionIndex) => (
@@ -328,14 +356,16 @@ export function BuilderForm() {
                       <input
                         className={inputClass}
                         value={option}
-                        placeholder={`תשובה ${optionIndex + 1}`}
+                        placeholder={t(dict, "builder.option.placeholder", {
+                          n: optionIndex + 1,
+                        })}
                         onChange={(event) =>
                           setOption(question.id, optionIndex, event.target.value)
                         }
                       />
                       <button
                         type="button"
-                        aria-label="מחיקת תשובה"
+                        aria-label={t(dict, "builder.removeOption")}
                         onClick={() => removeOption(question.id, optionIndex)}
                         disabled={question.options.length <= MIN_OPTIONS}
                         className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-blush text-rose-deep disabled:opacity-30"
@@ -345,7 +375,7 @@ export function BuilderForm() {
                     </div>
                   ))}
                 </div>
-                <FieldError message={questionErrors?.options} />
+                <FieldErrorText error={questionErrors?.options} dict={dict} />
 
                 {question.options.length < MAX_OPTIONS && (
                   <button
@@ -353,7 +383,7 @@ export function BuilderForm() {
                     onClick={() => addOption(question.id)}
                     className="mt-3 rounded-xl px-3 py-1.5 text-sm font-bold text-rose-deep transition hover:bg-blush"
                   >
-                    + עוד תשובה
+                    {t(dict, "builder.addOption")}
                   </button>
                 )}
               </motion.div>
@@ -366,12 +396,12 @@ export function BuilderForm() {
           onClick={addQuestion}
           className="w-full rounded-[2rem] border-2 border-dashed border-rose-soft/60 py-4 text-lg font-bold text-rose-deep transition hover:bg-white"
         >
-          + הוספת שאלה
+          {t(dict, "builder.addQuestion")}
         </button>
       </section>
 
       {serverError && (
-        <p className="text-center font-bold text-rose-deep">{serverError}</p>
+        <p className="text-center font-bold text-rose-deep">{t(dict, serverError)}</p>
       )}
 
       <button
@@ -380,7 +410,7 @@ export function BuilderForm() {
         disabled={submitting}
         className="w-full rounded-[2rem] bg-gradient-to-b from-rose-soft to-rose-deep py-5 text-xl font-bold text-white shadow-[0_16px_40px_-16px_rgba(232,74,127,0.7)] transition hover:brightness-105 disabled:opacity-60"
       >
-        {submitting ? "רגע..." : "יצירת קישור"}
+        {submitting ? t(dict, "builder.submitting") : t(dict, "builder.submit")}
       </button>
     </div>
   );

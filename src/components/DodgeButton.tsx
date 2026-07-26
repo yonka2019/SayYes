@@ -3,10 +3,11 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { useCallback, useRef, useState } from "react";
 import {
+  PLEA_KEYS,
   PROXIMITY_RADIUS,
   nextDodgeOffset,
   nextFleeOffset,
-  pleaForCatches,
+  pleaKeyForCatches,
   scaleForCatches,
   type Limit,
   type Offset,
@@ -16,15 +17,18 @@ import {
 const FLEE_COOLDOWN_MS = 90;
 
 /**
- * The "לא" button. It bolts away from the cursor as soon as it gets close —
+ * The "no" button. It bolts away from the cursor as soon as it gets close —
  * it doesn't wait to be hovered — and every click that does land shrinks it and
  * escalates a little plea, so catching it again is harder each time.
  */
 export function DodgeButton({
   label,
+  pleas,
   onDodge,
 }: {
   label: string;
+  /** Already-translated pleas, in `PLEA_KEYS` order — longest-suffering last. */
+  pleas: readonly string[];
   onDodge?: () => void;
 }) {
   const slot = useRef<HTMLDivElement>(null);
@@ -104,7 +108,8 @@ export function DodgeButton({
     [flee, hop]
   );
 
-  const plea = pleaForCatches(catches);
+  const pleaKey = pleaKeyForCatches(catches);
+  const plea = pleaKey ? pleas[PLEA_KEYS.indexOf(pleaKey)] : null;
 
   return (
     <div
@@ -134,7 +139,7 @@ export function DodgeButton({
         onClick={handleClick}
         onFocus={hop}
         animate={{ x: offset.x, y: offset.y, scale: scaleForCatches(catches) }}
-        transition={{ type: "spring", stiffness: 800, damping: 20, mass: 0.4 }}
+        transition={{ type: "spring", stiffness: 550, damping: 22, mass: 0.5 }}
         className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-rose-soft bg-white px-10 py-3.5 text-xl font-bold text-rose-deep shadow-[0_8px_18px_-10px_rgba(232,74,127,0.5)]"
       >
         {label}

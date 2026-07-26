@@ -1,6 +1,6 @@
+import type { Locale } from "./i18n/locales";
+import { getDictionary, t } from "./i18n/t";
 import type { DraftQuestion } from "./types";
-
-export const DEFAULT_GATE_QUESTION = "תרצי לצאת איתי לדייט?";
 
 export const MIN_OPTIONS = 2;
 export const MAX_OPTIONS = 4;
@@ -9,16 +9,38 @@ export const MAX_NAME_LENGTH = 40;
 export const MAX_TEXT_LENGTH = 120;
 export const MAX_OPTION_LENGTH = 40;
 
-/** The three logistics questions pre-loaded into a fresh builder. */
-export function defaultQuestions(): DraftQuestion[] {
+/** The pre-filled gate question, in the creator's language. */
+export function defaultGateQuestion(locale: Locale): string {
+  return t(getDictionary(locale), "seed.gate");
+}
+
+/**
+ * The three logistics questions pre-loaded into a fresh builder, in the
+ * creator's language. These are seeds, not chrome — the creator edits them and
+ * whatever they end up as is stored verbatim and never translated again.
+ */
+export function defaultQuestions(locale: Locale): DraftQuestion[] {
+  const dict = getDictionary(locale);
   return [
-    { id: "default-food", text: "מה בא לך לאכול?", options: ["סושי", "פיצה", "המבורגר"] },
-    { id: "default-place", text: "לאן נלך אחר כך?", options: ["טיילת", "בית קפה", "קולנוע"] },
-    { id: "default-when", text: "מתי מסתדר לך?", options: ["יום חמישי", "שישי בערב", "מוצאי שבת"] },
+    {
+      id: "default-food",
+      text: t(dict, "seed.food.q"),
+      options: [t(dict, "seed.food.a1"), t(dict, "seed.food.a2"), t(dict, "seed.food.a3")],
+    },
+    {
+      id: "default-place",
+      text: t(dict, "seed.place.q"),
+      options: [t(dict, "seed.place.a1"), t(dict, "seed.place.a2"), t(dict, "seed.place.a3")],
+    },
+    {
+      id: "default-when",
+      text: t(dict, "seed.when.q"),
+      options: [t(dict, "seed.when.a1"), t(dict, "seed.when.a2"), t(dict, "seed.when.a3")],
+    },
   ];
 }
 
-/** A blank question for the "הוספת שאלה" button. */
+/** A blank question for the "add question" button. */
 export function emptyQuestion(id: string): DraftQuestion {
   return { id, text: "", options: ["", ""] };
 }
