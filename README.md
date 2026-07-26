@@ -24,7 +24,7 @@ button, and a mascot that reacts at the key moments.
 | Piece | Choice |
 |---|---|
 | App | Next.js 15 (App Router, TypeScript) — UI + API routes in one process |
-| DB | SQLite via Prisma (`prisma/dev.db`) |
+| DB | Postgres via Prisma (Neon / Vercel Postgres) |
 | Styling | Tailwind CSS v4, custom pink theme in `src/app/globals.css` |
 | Animation | Framer Motion (mascots, dodge button, transitions) |
 | Finale | canvas-confetti |
@@ -32,11 +32,29 @@ button, and a mascot that reacts at the key moments.
 
 ## Setup
 
+You need a Postgres connection string. Free options: [Neon](https://neon.tech)
+or Vercel Postgres. Use Neon's **pooled** string (host contains `-pooler`).
+
 ```bash
 npm install
-npm run db:push      # creates prisma/dev.db from prisma/schema.prisma
-npm run dev          # http://localhost:3000
+cp .env.example .env   # then paste your DATABASE_URL into .env
+npm run db:push        # creates the tables from prisma/schema.prisma
+npm run dev            # http://localhost:3000
 ```
+
+## Deploying to Vercel
+
+The database is not part of the deployment — Vercel runs the app, the Postgres
+instance lives on Neon/Vercel Postgres, and `DATABASE_URL` is the only link.
+
+1. Push to GitHub, then import the repo in Vercel.
+2. Add `DATABASE_URL` under Settings → Environment Variables (all environments).
+3. Deploy. The `build` script runs `prisma generate` before `next build`, which
+   Vercel needs since the generated client isn't committed.
+4. Run `npm run db:push` once locally against that same database so the tables
+   exist.
+
+The invitation link is then a normal public URL, no local server required.
 
 ## Scripts
 
@@ -46,7 +64,7 @@ npm run dev          # http://localhost:3000
 | `npm run build` | Production build + type check |
 | `npm start` | Serve the production build |
 | `npm test` | Vitest unit tests (dodge math, builder validation) |
-| `npm run db:push` | Sync the SQLite file with the Prisma schema |
+| `npm run db:push` | Sync the database with the Prisma schema |
 
 ## Routes
 
@@ -60,10 +78,13 @@ npm run dev          # http://localhost:3000
 
 ## Notes
 
-- **The generated link only works while your local dev server is running** —
-  there is no hosting in this project.
-- No auth: it's a single-user tool, and the dashboard lists every invitation in
-  the local database.
+- Running locally, the generated link only resolves while your dev server is up.
+  Deployed to Vercel it's a normal public URL.
+- No auth: it's a single-user tool, and the dashboard lists **every** invitation
+  in the database. Anyone who reaches the deployed `/` sees them all, so treat
+  the URL as private.
+- `DATABASE_URL` is required — the app throws a clear error at startup rather
+  than failing on the first query.
 - An invitation can be answered **once**. Reopening it shows her real, first
   answers instead of letting her redo them.
 - Invitations can't be edited after they're generated.
@@ -72,6 +93,7 @@ npm run dev          # http://localhost:3000
 
 ```
 prisma/schema.prisma          Invitation / Question / QuestionOption / Answer
+.env.example                  the DATABASE_URL you need to fill in
 src/lib/dodge.ts              dodge hop math (pure, unit tested)
 src/lib/validation.ts         builder validation rules (pure, unit tested)
 src/lib/defaults.ts           default gate question + 3 default questions, limits

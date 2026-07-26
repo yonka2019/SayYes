@@ -1,7 +1,9 @@
 # CLAUDE.md — SayYes
 
-Hebrew-only (RTL), single-user, local-only Next.js app for building cute
-"will you go on a date with me?" invitations. Design spec: `md.md`.
+Hebrew-only (RTL), single-user Next.js app for building cute
+"will you go on a date with me?" invitations. Runs locally or on Vercel.
+Design spec: `md.md` (written when the scope was local-only — the Postgres and
+deployment setup below supersedes its "start locally only" decision).
 Implementation plan: `docs/superpowers/plans/2026-07-26-date-invitation-website.md`.
 
 ## Hard rules for this project
@@ -31,8 +33,16 @@ Implementation plan: `docs/superpowers/plans/2026-07-26-date-invitation-website.
 ## Architecture
 
 - One Next.js App Router process holds UI + API routes. No separate backend.
-- Prisma + SQLite at `prisma/dev.db`. Schema: `Invitation` → `Question` →
-  `QuestionOption`, plus `Answer` (unique per `[invitationId, questionId]`).
+- **Prisma + Postgres**, `url = env("DATABASE_URL")`. Schema: `Invitation` →
+  `Question` → `QuestionOption`, plus `Answer` (unique per
+  `[invitationId, questionId]`). Schema changes go out with `npm run db:push`.
+  - It was SQLite (`prisma/dev.db`) originally. That can't work on Vercel: the
+    file is gitignored so it never deploys, and the filesystem is read-only and
+    ephemeral. Don't switch back for the sake of "simpler local setup".
+  - `build` is `prisma generate && next build` — Vercel needs the generate step
+    because the generated client isn't committed. Don't drop it.
+  - `src/lib/prisma.ts` throws immediately if `DATABASE_URL` is missing, so the
+    failure is a readable message instead of a query-time driver error.
 - **Pure logic lives in `src/lib/` and is unit tested** (`tests/*.test.ts`).
   Anything with a rule worth asserting belongs there, not inside a component.
   - `dodge.ts` — hop math, takes an injectable `rand()` so tests are deterministic.
