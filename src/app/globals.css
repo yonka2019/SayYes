@@ -1,0 +1,24 @@
+@import "tailwindcss";
+
+@theme {
+  --color-blush: #fff0f5;
+  --color-blush-deep: #ffe1ec;
+  --color-rose-deep: #e84a7f;
+  --color-rose-soft: #ff6ba0;
+  --color-rose-ink: #8a2c4d;
+  --font-cute: var(--font-varela), "Rubik", "Heebo", "Segoe UI", Arial, sans-serif;
+  --radius-cute: 2.5rem;
+}
+
+@layer base {
+  html,
+  body {
+    font-family: var(--font-cute);
+    color: var(--color-rose-ink);
+  }
+
+  button {
+    cursor: pointer;
+  }
+}
+
