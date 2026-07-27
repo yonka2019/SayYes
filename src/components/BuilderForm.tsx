@@ -13,19 +13,9 @@ import {
 } from "@/lib/defaults";
 import type { Locale } from "@/lib/i18n/locales";
 import { t, type Dictionary, type MessageKey } from "@/lib/i18n/t";
-import type {
-  Draft,
-  DraftErrors,
-  DraftQuestion,
-  FieldError,
-  MascotKind,
-} from "@/lib/types";
+import { MASCOT_KINDS, MASCOT_NAME_KEY } from "@/lib/mascots";
+import type { Draft, DraftErrors, DraftQuestion, FieldError } from "@/lib/types";
 import { validateDraft } from "@/lib/validation";
-
-const MASCOT_KINDS: MascotKind[] = ["BEAR", "PENGUIN"];
-
-const mascotKey = (kind: MascotKind): MessageKey =>
-  kind === "BEAR" ? "mascot.bear" : "mascot.penguin";
 
 const EMPTY_ERRORS: DraftErrors = { byQuestion: {} };
 
@@ -186,7 +176,7 @@ export function BuilderForm({ locale, dict }: { locale: Locale; dict: Dictionary
         className="rounded-[2.5rem] bg-white p-8 text-center shadow-[0_24px_60px_-24px_rgba(232,74,127,0.4)]"
       >
         <div className="mx-auto mb-2 w-fit">
-          <Mascot kind={chosen} mood="cheer" size={150} label={t(dict, mascotKey(chosen))} />
+          <Mascot kind={chosen} mood="cheer" size={150} label={t(dict, MASCOT_NAME_KEY[chosen])} />
         </div>
         <h2 className="text-2xl font-bold text-rose-deep">{t(dict, "builder.done.title")}</h2>
         <p className="mt-2 text-rose-ink/70">{t(dict, "builder.done.subtitle")}</p>
@@ -267,7 +257,7 @@ export function BuilderForm({ locale, dict }: { locale: Locale; dict: Dictionary
           <div className="grid grid-cols-2 gap-4">
             {MASCOT_KINDS.map((kind) => {
               const selected = draft.mascot === kind;
-              const name = t(dict, mascotKey(kind));
+              const name = t(dict, MASCOT_NAME_KEY[kind]);
               return (
                 <button
                   key={kind}

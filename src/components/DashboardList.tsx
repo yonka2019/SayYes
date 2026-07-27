@@ -6,7 +6,8 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Mascot } from "@/components/Mascot";
 import { RecapCard } from "@/components/RecapCard";
 import { LOCALE_NAMES, type Locale } from "@/lib/i18n/locales";
-import { t, type Dictionary, type MessageKey } from "@/lib/i18n/t";
+import { t, type Dictionary } from "@/lib/i18n/t";
+import { MASCOT_NAME_KEY } from "@/lib/mascots";
 import type { InvitationStatus, MascotKind, RecapItem } from "@/lib/types";
 
 export type DashboardItem = {
@@ -20,9 +21,6 @@ export type DashboardItem = {
   locale: Locale;
   recap: RecapItem[];
 };
-
-const mascotKey = (kind: MascotKind): MessageKey =>
-  kind === "BEAR" ? "mascot.bear" : "mascot.penguin";
 
 function StatusBadge({ status, dict }: { status: InvitationStatus; dict: Dictionary }) {
   const answered = status === "ANSWERED";
@@ -114,7 +112,7 @@ export function DashboardList({
                     kind={item.mascot}
                     mood="idle"
                     size={56}
-                    label={t(dict, mascotKey(item.mascot))}
+                    label={t(dict, MASCOT_NAME_KEY[item.mascot])}
                   />
                 </div>
 

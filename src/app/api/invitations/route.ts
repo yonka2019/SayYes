@@ -3,11 +3,10 @@ import { DEFAULT_LOCALE, isLocale } from "@/lib/i18n/locales";
 import type { MessageKey } from "@/lib/i18n/t";
 import { createdEmail } from "@/lib/mail/content";
 import { sendMail } from "@/lib/mail/send";
+import { MASCOT_KINDS } from "@/lib/mascots";
 import { prisma } from "@/lib/prisma";
 import type { Draft, MascotKind } from "@/lib/types";
 import { validateDraft } from "@/lib/validation";
-
-const MASCOTS: MascotKind[] = ["BEAR", "PENGUIN"];
 
 const isStringArray = (value: unknown): value is string[] =>
   Array.isArray(value) && value.every((item) => typeof item === "string");
@@ -20,7 +19,7 @@ function toDraft(body: unknown): Draft | null {
   if (typeof raw.recipientName !== "string") return null;
   if (typeof raw.creatorEmail !== "string") return null;
   if (typeof raw.gateQuestion !== "string") return null;
-  if (raw.mascot !== null && !MASCOTS.includes(raw.mascot as MascotKind)) return null;
+  if (raw.mascot !== null && !MASCOT_KINDS.includes(raw.mascot as MascotKind)) return null;
   if (!Array.isArray(raw.questions)) return null;
 
   const questions = raw.questions.map((entry, index) => {

@@ -5,14 +5,12 @@ import { Mascot } from "@/components/Mascot";
 import { RecapCard } from "@/components/RecapCard";
 import { Sparkles } from "@/components/Sparkles";
 import { DEFAULT_LOCALE, isLocale, type Locale } from "@/lib/i18n/locales";
-import { getDictionary, t, type Dictionary, type MessageKey } from "@/lib/i18n/t";
+import { getDictionary, t, type Dictionary } from "@/lib/i18n/t";
+import { MASCOT_NAME_KEY } from "@/lib/mascots";
 import { prisma } from "@/lib/prisma";
 import type { InviteView, MascotKind, RecapItem } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
-
-const mascotKey = (kind: MascotKind): MessageKey =>
-  kind === "BEAR" ? "mascot.bear" : "mascot.penguin";
 
 function MissingInvitation({ dict }: { dict: Dictionary }) {
   return (
@@ -134,7 +132,7 @@ function AnsweredRecap({
 }) {
   return (
     <CuteCard
-      top={<Mascot kind={mascot} mood="cheer" size={180} label={t(dict, mascotKey(mascot))} />}
+      top={<Mascot kind={mascot} mood="cheer" size={180} label={t(dict, MASCOT_NAME_KEY[mascot])} />}
     >
       <h1 className="text-center text-2xl font-bold text-rose-deep">
         {t(dict, "invite.answered.title")}
