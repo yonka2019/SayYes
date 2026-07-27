@@ -84,7 +84,7 @@ export async function POST(
   ]);
 
   const locale = isLocale(invitation.locale) ? invitation.locale : DEFAULT_LOCALE;
-  const link = `${new URL(request.url).origin}/${locale}`;
+  const link = `${new URL(request.url).origin}/${locale}/answers/${invitation.id}`;
   const { subject, text } = answeredEmail({
     locale,
     recipientName: invitation.recipientName,

@@ -118,6 +118,16 @@ export const he = {
   "seed.when.a2": "שישי בערב",
   "seed.when.a3": "מוצאי שבת",
 
+  "answers.title": "התשובות של {name}",
+  "answers.answeredAt": "ענתה ב{date}",
+  "answers.recapTitle": "מה היא בחרה",
+  "answers.back": "חזרה לכל ההזמנות",
+  "answers.waiting.title": "עדיין מחכים ל{name}",
+  "answers.waiting.text": "ההזמנה נשלחה אבל עוד לא נענתה.",
+  "answers.waiting.cta": "פתיחת ההזמנה",
+  "answers.missing.title": "לא מצאנו את ההזמנה",
+  "answers.missing.text": "אולי הקישור השתנה או שההזמנה נמחקה.",
+
   "email.created.subject": "ההזמנה ל{name} מוכנה 💌",
   "email.created.body": "ההזמנה ל{name} מוכנה. הקישור לשליחה: {link}",
   "email.answered.subject": "{name} ענתה על ההזמנה! 🎉",

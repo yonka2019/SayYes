@@ -113,6 +113,16 @@ export const en: Dictionary = {
   "seed.when.a2": "Friday evening",
   "seed.when.a3": "Saturday night",
 
+  "answers.title": "{name}'s answers",
+  "answers.answeredAt": "Answered {date}",
+  "answers.recapTitle": "What she picked",
+  "answers.back": "Back to all invitations",
+  "answers.waiting.title": "Still waiting for {name}",
+  "answers.waiting.text": "The invitation is out but hasn't been answered yet.",
+  "answers.waiting.cta": "Open the invitation",
+  "answers.missing.title": "Invitation not found",
+  "answers.missing.text": "The link may have changed, or the invitation was deleted.",
+
   "email.created.subject": "The invitation for {name} is ready 💌",
   "email.created.body": "The invitation for {name} is ready. Link to send: {link}",
   "email.answered.subject": "{name} answered the invitation! 🎉",

@@ -114,6 +114,16 @@ export const ru: Dictionary = {
   "seed.when.a2": "В пятницу вечером",
   "seed.when.a3": "В субботу вечером",
 
+  "answers.title": "Ответы {name}",
+  "answers.answeredAt": "Ответила {date}",
+  "answers.recapTitle": "Что она выбрала",
+  "answers.back": "Ко всем приглашениям",
+  "answers.waiting.title": "Ждём ответа от {name}",
+  "answers.waiting.text": "Приглашение отправлено, но ответа пока нет.",
+  "answers.waiting.cta": "Открыть приглашение",
+  "answers.missing.title": "Приглашение не найдено",
+  "answers.missing.text": "Возможно, ссылка изменилась или приглашение удалено.",
+
   "email.created.subject": "Приглашение для {name} готово 💌",
   "email.created.body": "Приглашение для {name} готово. Ссылка для отправки: {link}",
   "email.answered.subject": "{name} ответила на приглашение! 🎉",
