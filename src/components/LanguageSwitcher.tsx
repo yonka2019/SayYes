@@ -12,12 +12,15 @@ import {
 import { t, type Dictionary } from "@/lib/i18n/t";
 
 /**
- * One button, showing the current language in its own script. Each click
- * cycles to the next locale in `LOCALES` order (he → ru → en → he), writing
- * the cookie so the choice survives a visit to a prefix-less URL, then
- * swapping the path prefix.
+ * All three languages, each in its own script, with the current one filled.
+ * A segmented control rather than a dropdown: with three locales a popover
+ * would add open/close state, click-outside, Escape and arrow-key handling for
+ * nothing.
  *
- * Not rendered on the invite page: the invitation's content can't follow a
+ * Picking one writes the cookie — so the choice survives a visit to a
+ * prefix-less URL — then swaps the path prefix.
+ *
+ * Not rendered on the invite or answers pages: their content can't follow a
  * switch, so offering one there would only produce a mixed-language card.
  */
 export function LanguageSwitcher({
@@ -30,24 +33,38 @@ export function LanguageSwitcher({
   const router = useRouter();
   const pathname = usePathname();
 
-  const next = LOCALES[(LOCALES.indexOf(locale) + 1) % LOCALES.length];
-
-  function cycle() {
+  function choose(next: Locale) {
+    if (next === locale) return;
     document.cookie = `${LOCALE_COOKIE}=${next}; path=/; max-age=${LOCALE_COOKIE_MAX_AGE}; samesite=lax`;
     router.replace(swapLocale(pathname, next));
   }
 
   return (
-    <button
-      type="button"
-      lang={locale}
-      onClick={cycle}
-      title={t(dict, "switcher.label")}
-      aria-label={`${t(dict, "switcher.label")}: ${LOCALE_NAMES[locale]}`}
-      className="flex items-center gap-1.5 rounded-2xl bg-white/70 px-3 py-1.5 text-sm font-bold text-rose-deep transition hover:bg-white"
+    <div
+      role="group"
+      aria-label={t(dict, "switcher.label")}
+      className="flex flex-wrap items-center gap-1 rounded-2xl bg-white/70 p-1"
     >
-      <span aria-hidden>🌐</span>
-      {LOCALE_NAMES[locale]}
-    </button>
+      <span aria-hidden className="px-1.5 text-sm">
+        🌐
+      </span>
+      {LOCALES.map((code) => {
+        const active = code === locale;
+        return (
+          <button
+            key={code}
+            type="button"
+            lang={code}
+            onClick={() => choose(code)}
+            aria-current={active ? "true" : undefined}
+            className={`rounded-xl px-3 py-1.5 text-sm font-bold transition ${
+              active ? "bg-rose-deep text-white" : "text-rose-deep hover:bg-blush"
+            }`}
+          >
+            {LOCALE_NAMES[code]}
+          </button>
+        );
+      })}
+    </div>
   );
 }
