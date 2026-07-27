@@ -9,7 +9,9 @@ Implementation plans:
 `docs/superpowers/plans/2026-07-26-date-invitation-website.md` (original build),
 `docs/superpowers/plans/2026-07-26-i18n-he-ru-en.md` (he/ru/en localization),
 `docs/superpowers/plans/2026-07-26-email-notifications.md` (creator email
-notifications).
+notifications),
+`docs/superpowers/plans/2026-07-27-emails-answers-page-mascots.md` (HTML emails,
+answers page, language pills, six characters, heart fix).
 
 ## Hard rules for this project
 
@@ -39,13 +41,32 @@ notifications).
   there's no wrong-language flash. The middleware matcher must keep excluding
   `/api` — API routes are never locale-prefixed.
 - **An invitation owns its locale.** `Invitation.locale` is set at creation
-  from the builder's URL locale. `/{locale}/invite/{token}` redirects to the
-  invitation's own locale if they differ, so content and chrome never mix
-  languages on one card. No language switcher renders on the invite page for
-  the same reason.
+  from the builder's URL locale. `/{locale}/invite/{token}` and
+  `/{locale}/answers/{token}` both redirect to the invitation's own locale if
+  they differ, so content and chrome never mix languages on one card. No
+  language switcher renders on either page for the same reason.
+- **The language switcher shows all three languages**, as a segmented control
+  with the current one filled and `aria-current`, and clicking the active pill
+  is a no-op. It used to be one button that cycled `he → ru → en`, which hid
+  what the options even were. Don't turn it back into a cycle, and don't make it
+  a dropdown either — with three locales a popover is pure overhead.
 - **Answers are multiple choice only**, 2–4 options per question (`MIN_OPTIONS` /
   `MAX_OPTIONS` in `src/lib/defaults.ts`). No free text, no date picker.
-- **Mascot has no default** — the creator must actively pick `BEAR` or `PENGUIN`.
+- **Six characters, and no default** — the creator must actively pick one of
+  `BEAR`, `PENGUIN`, `BUNNY`, `CAT`, `FOX`, `PANDA`. `src/lib/mascots.ts` is the
+  **one** registry (`MASCOT_KINDS`, `MASCOT_NAME_KEY`, `MASCOT_EMOJI`); adding a
+  character is one edit there plus one artwork file in
+  `src/components/mascots/`. Never reintroduce a local `["BEAR","PENGUIN"]`
+  array or a `kind === "BEAR" ? … : …` ternary — there were four such copies
+  (`BuilderForm`, `DashboardList`, the invite page, `InviteFlow`) plus two
+  arrays (`validation.ts`, the create route), and the `InviteFlow` one failed
+  *silently*: it labelled every non-bear as "penguin" to a screen reader.
+- **Mascot geometry:** characters must stay inside `y 0–200` of the 200-wide
+  SVG grid. The `HEADROOM` band above `y=0` (see `Mascot.tsx`) belongs to the
+  `cheer` hearts, which is the only reason they neither clip at the viewBox
+  edge nor land on the character's head. The bunny's ears are the tightest fit
+  at `y=14` — at `y=2` they collided. Re-measure after touching any artwork:
+  every character should clear the hearts, bunny has the least room at ~7px.
 - **Dodge lives in `src/lib/dodge.ts`** and has three parts, all tested:
   - `nextFleeOffset` — bolts *away from the cursor* (55–110px) as soon as it comes
     within `PROXIMITY_RADIUS` (130px). It doesn't wait for hover.
@@ -61,11 +82,23 @@ notifications).
 - **One answer set per invitation.** Reopening an answered link is read-only.
 - **The creator's email is required** and stored on `Invitation.creatorEmail`.
   Two notification emails go out via `src/lib/mail/`: one when an invitation is
-  created (share link) and one when it's answered (dashboard link, no answer
-  recap). Both use the invitation's own locale for the email text. A failed
-  send **fails the request** — the API compensates by rolling back what it
-  just wrote (deleting the invitation, or deleting the just-inserted answers
-  and reverting `ANSWERED` back to `PENDING`) rather than silently continuing.
+  created (share link) and one when it's answered (**includes the answer
+  recap**, and links to `/{locale}/answers/{token}`, not the dashboard). Both
+  use the invitation's own locale. A failed send **fails the request** — the API
+  compensates by rolling back what it just wrote (deleting the invitation, or
+  deleting the just-inserted answers and reverting `ANSWERED` back to
+  `PENDING`) rather than silently continuing. Consequence worth knowing while
+  developing: with no `SMTP_PASSWORD` you cannot create *or* answer an
+  invitation at all, so seed rows directly via Prisma if you need test data.
+- **Email HTML lives in `src/lib/mail/layout.ts`** and is table-based with
+  inline styles — no flexbox, no grid, no stylesheet, no `@font-face` (webfonts
+  don't load in most clients, so the system fallback is the real design), and
+  solid hex only, never `rgba()`. Two things that are load-bearing and look
+  redundant: the header carries `bgcolor` *and* `background-image` because
+  Outlook drops the gradient, and the card is `width="100%"` + `max-width:600px`
+  — a fixed `width="600"` overflows sideways on a phone. **Every creator-typed
+  string must pass through `escapeHtml()`**; content is stored verbatim and
+  never sanitised on the way in.
 - No auth, no deployment, no invitation editing after generation — all out of scope.
 
 ## Architecture
@@ -104,15 +137,24 @@ notifications).
     lookup/interpolation helper. `tests/i18n.test.ts` asserts all three
     dictionaries share the exact same key set and the exact same
     `{placeholder}` set per key, so a translation can't silently drift.
-  - `mail/content.ts` — pure `{ subject, text }` builders per locale, unit
-    tested. `mail/send.ts` — the one shared `nodemailer` SMTP transport
+  - `mascots.ts` — the character registry. A unit test asserts every
+    `MascotKind` has both a name key and an emoji, so it can't drift behind the
+    union at runtime.
+  - `mail/content.ts` — pure `{ subject, text, html }` builders per locale, unit
+    tested. `mail/layout.ts` — the email HTML primitives (`escapeHtml`,
+    `emailShell`, `button`, `recapTable`, `linkFallback`, `footer`), also pure
+    and unit tested. `mail/send.ts` — the one shared `nodemailer` SMTP transport
     (`smtp.resend.com:465`), lazily created on first `sendMail()` call rather
     than at import so `npm run build` doesn't require `SMTP_PASSWORD`; not unit
     tested (verified manually).
-- Server components query Prisma directly (`/`, `/invite/[token]`); client
-  components own interaction state (`BuilderForm`, `InviteFlow`, `DashboardList`).
-- Both dynamic pages set `export const dynamic = "force-dynamic"` so freshly
-  created/answered invitations always show.
+- Server components query Prisma directly (`/`, `/invite/[token]`,
+  `/answers/[token]`); client components own interaction state (`BuilderForm`,
+  `InviteFlow`, `DashboardList`).
+- All three dynamic pages set `export const dynamic = "force-dynamic"` so
+  freshly created/answered invitations always show.
+- `Mascot.tsx` is the SVG shell (viewBox, headroom, hearts, mood wiring) and
+  nothing else; each character is its own file under `src/components/mascots/`
+  with the shared mood keyframes in `mascots/motion.ts`.
 - Next 15: route `params` is a `Promise` — always `await` it.
 
 ## Visual system
@@ -137,26 +179,47 @@ notifications).
 ## Verification
 
 ```bash
-npm test          # dodge + validation + i18n + mail-content units (4 suites, 78 tests)
+npm test          # dodge + validation + i18n + mascots + mail-content +
+                  # mail-layout units (6 suites, 105 tests)
 npm run build     # type check — succeeds without SMTP_PASSWORD; only sending
                    # mail needs it, not the build (send.ts creates its transport
                    # lazily on first sendMail() call, not at module import)
 npm run dev       # then click the real flow in a browser
 ```
 
+Don't run `npm run build` while `npm run dev` is up — the production build
+overwrites `.next` and the dev server then 500s on missing chunks until you
+`rm -rf .next` and restart. Use `npx tsc --noEmit` for a type check mid-session.
+
+`npm run db:push` runs `prisma generate` afterwards, which fails with `EPERM` on
+Windows if any dev server is holding `query_engine-windows.dll.node`. The
+generated *types* are still written, so a type check is trustworthy; stop the
+dev server if you need the engine swapped too.
+
 Manual click-through is part of "done" here, per the spec's testing section, and
 now repeats **per locale** (`he` RTL, `ru` LTR, `en` LTR): dashboard → switcher
-(single button, cycles `he → ru → en → he`) → builder (incl. validation errors)
-→ link → gate (try to catch "no") → questions → finale → reload link
-(read-only recap) → dashboard recap. Also worth re-checking: `/{other-locale}
-/invite/{token}` redirects to the invitation's own locale; a fresh visit with
-`Accept-Language: ru-RU` lands on `/ru`; an unknown locale segment (`/de`) is a
-`404`; API edges — `409` on an already-answered token, `404` on an unknown
-token, `400` with an `{ code }` body on an invalid draft. With `SMTP_PASSWORD`
-configured, also confirm both notification emails actually arrive: the
-invitation-created email (share link) right after the builder submits, and the
-invitation-answered email (dashboard link) right after the recipient finishes
-the flow.
+(three pills; check the active one is a no-op) → builder (incl. validation
+errors, all six characters) → link → gate (try to catch "no") → questions →
+finale → answers page → back to dashboard → reload link (read-only recap) →
+dashboard recap. Also worth re-checking: `/{other-locale}/invite/{token}` and
+`/{other-locale}/answers/{token}` redirect to the invitation's own locale; a
+fresh visit with `Accept-Language: ru-RU` lands on `/ru`; an unknown locale
+segment (`/de`) 404s (after one middleware hop that prefixes it, so
+`/de/x` → `/he/de/x` → `404`); API edges — `409` on an already-answered token,
+`404` on an unknown token, `400` with an `{ code }` body on an invalid draft.
+With `SMTP_PASSWORD` configured, also confirm both notification emails actually
+arrive.
+
+Two things that reward measuring over eyeballing, because a desktop screenshot
+hides both:
+
+- **Mascot hearts.** Sample each `cheer` mascot's heart and character bounding
+  boxes across the animation loop and assert the hearts never reach the top of
+  the box and never overlap the character. A single screenshot catches one frame
+  of a 1.6s loop.
+- **Email width.** Render the six emails (3 locales × 2 kinds) into an iframe at
+  390px and assert `body.scrollWidth <= documentElement.clientWidth`. They look
+  perfect at 760px while overflowing badly on a phone.
 
 ## Housekeeping
 

@@ -7,7 +7,8 @@ You build an invitation (recipient name, mascot, gate question, multiple-choice
 logistics questions) in whichever of the three languages you're working in, get
 a shareable link, and send it. She opens it, has to say "yes" to the gate
 question, answers the logistics questions, and lands on a confetti finale with a
-recap of everything she picked. Her answers show up on your dashboard.
+recap of everything she picked. You get an email with her answers in it, linking
+to a page for that one invitation; they also show up on your dashboard.
 
 The "no" button doesn't cooperate: it bolts away from the cursor before it can
 be hovered, and any click that does land shrinks it and adds an escalating plea
@@ -63,9 +64,10 @@ wrong-language flash. `/api/*` is never redirected.
 **An invitation owns its locale.** It's set from the builder's URL when the
 invitation is created, and `/{locale}/invite/{token}` redirects to the
 invitation's own locale if they differ — so the recipient never sees Hebrew
-content next to Russian buttons. For that reason, the language switcher
-(dashboard and builder, one button that cycles `he → ru → en`) doesn't appear
-on the invite page — the content can't follow a switch there.
+content next to Russian buttons. `/{locale}/answers/{token}` redirects the same
+way. For that reason, the language switcher (dashboard and builder, a segmented
+control showing all three languages with the current one filled) doesn't appear
+on the invite or answers pages — the content can't follow a switch there.
 
 ## Setup
 
@@ -107,7 +109,7 @@ The invitation link is then a normal public URL, no local server required.
 | `npm run dev` | Dev server |
 | `npm run build` | Production build + type check |
 | `npm start` | Serve the production build |
-| `npm test` | Vitest unit tests (dodge math, builder validation, i18n detection + dictionaries, mail content) |
+| `npm test` | Vitest unit tests (dodge math, builder validation, i18n detection + dictionaries, mascot registry, mail content, mail HTML layout) |
 | `npm run db:push` | Sync the database with the Prisma schema |
 
 ## Routes
@@ -118,8 +120,9 @@ middleware adds the prefix automatically if a request arrives without one.
 | Route | Who | What |
 |---|---|---|
 | `/{locale}` | creator | Dashboard: every invitation across all locales, each with a locale badge, status, created/answered time, copy link, inline recap for answered ones |
-| `/{locale}/new` | creator | Builder: name, mascot (bear/penguin), gate question, questions with 2–4 options each, in `{locale}` → generates the link |
+| `/{locale}/new` | creator | Builder: name, email, one of six characters, gate question, questions with 2–4 options each, in `{locale}` → generates the link |
 | `/{locale}/invite/[token]` | recipient | Gate screen → one question at a time → confetti finale, in the invitation's own locale (redirects here if `{locale}` doesn't match). Reopening an answered link shows a read-only recap. Unknown token gets a cute "not found" card. |
+| `/{locale}/answers/[token]` | creator | One invitation's answers — where the "she answered" email points. Cheering mascot, answered time, full recap, link back to the dashboard. Still pending shows a waiting card with a link through to the invitation; unknown token gets the same cute "not found" card. Redirects to the invitation's own locale. |
 | `POST /api/invitations` | — | Create an invitation from a builder draft, storing its `locale`. Returns `201` on success or `400 { code: "api.emailFailed" }` if the creation email fails to send (the invitation is deleted and the request is rolled back). |
 | `POST /api/invitations/[token]/answers` | — | Submit all answers, mark the invitation `ANSWERED`. Returns `200` on success or `400 { code: "api.emailFailed" }` if the answered email fails to send (answers are deleted and the invitation reverts to `PENDING`, rolled back). |
 
@@ -137,7 +140,14 @@ middleware adds the prefix automatically if a request arrives without one.
   than failing on the first query.
 - `SMTP_PASSWORD` is required to actually send mail — `src/lib/mail/send.ts`
   throws a clear error the first time `sendMail()` runs if it's missing (not at
-  import time, so `npm run build` doesn't need it).
+  import time, so `npm run build` doesn't need it). Because a failed send fails
+  the request, **without it you can't create or answer an invitation at all**,
+  not just miss the notification.
+- Both notifications are HTML (table-based, inline styles, no webfont — the
+  three things mail clients agree on), with a plain-text part as the fallback.
+  The "she answered" one includes the answers themselves and links to
+  `/{locale}/answers/{token}`. Anything the creator typed is escaped on the way
+  in via `escapeHtml` — see `src/lib/mail/layout.ts`.
 - An invitation can be answered **once**. Reopening it shows her real, first
   answers instead of letting her redo them.
 - Invitations can't be edited after they're generated.
@@ -151,18 +161,24 @@ src/middleware.ts              locale detection + redirect to /{locale}/...
 src/lib/dodge.ts               dodge hop math (pure, unit tested); pleas are dictionary keys
 src/lib/validation.ts          builder validation rules (pure, unit tested); returns error codes
 src/lib/defaults.ts            locale-aware seed gate question + 3 default questions, limits
+src/lib/mascots.ts             the one registry of characters: kinds, name keys, email emoji
 src/lib/types.ts               shared Draft / InviteView / Recap / FieldError types
 src/lib/i18n/locales.ts        locale list, direction map, resolveLocale(), negotiate()
 src/lib/i18n/t.ts              Dictionary type + getDictionary()/t()/format()
 src/lib/i18n/dictionaries/     he.ts (source of truth), ru.ts, en.ts
-src/lib/mail/                  content.ts (pure {subject,text} builders per locale), send.ts
+src/lib/mail/                  content.ts (pure {subject,text,html} builders per locale),
+                               layout.ts (email HTML primitives + escapeHtml), send.ts
                                (nodemailer SMTP transport via Resend, needs SMTP_PASSWORD)
-src/app/[locale]/              routes: /{locale}, /{locale}/new, /{locale}/invite/[token]
+src/app/[locale]/              routes: /{locale}, /{locale}/new, /{locale}/invite/[token],
+                               /{locale}/answers/[token]
 src/app/api/                   /api/invitations, /api/invitations/[token]/answers (no locale prefix)
 src/components/                CuteCard, Mascot, HeartButton, DodgeButton,
                                Sparkles, RecapCard, BuilderForm, InviteFlow,
                                DashboardList, LanguageSwitcher
-tests/                         Vitest specs for dodge + validation + i18n + mail content
+src/components/mascots/        one file per character (Bear, Penguin, Bunny, Cat, Fox,
+                               Panda) + motion.ts (shared mood keyframes)
+tests/                         Vitest specs for dodge + validation + i18n + mascot
+                               registry + mail content + mail layout
 docs/superpowers/plans/        the implementation plans this was built from
 docs/superpowers/specs/        the i18n design spec
 md.md                          the original design spec (local-only, Hebrew-only — superseded)
