@@ -41,7 +41,11 @@ export async function POST(
 
   const invitation = await prisma.invitation.findUnique({
     where: { id: token },
-    include: { questions: { include: { options: true } } },
+    // Ordered because the notification email's recap is built from this, and it
+    // has to read in the same order the creator wrote the questions — the same
+    // order the answers page, dashboard and finale all show. Validation alone
+    // wouldn't care, which is why this query used to be unordered.
+    include: { questions: { orderBy: { order: "asc" }, include: { options: true } } },
   });
 
   if (!invitation) {
