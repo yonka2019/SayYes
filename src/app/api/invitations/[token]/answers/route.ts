@@ -4,7 +4,7 @@ import type { MessageKey } from "@/lib/i18n/t";
 import { answeredEmail } from "@/lib/mail/content";
 import { sendMail } from "@/lib/mail/send";
 import { prisma } from "@/lib/prisma";
-import type { AnswerSubmission } from "@/lib/types";
+import type { AnswerSubmission, RecapItem } from "@/lib/types";
 
 function toSubmissions(body: unknown): AnswerSubmission[] | null {
   if (typeof body !== "object" || body === null) return null;
@@ -83,12 +83,23 @@ export async function POST(
     }),
   ]);
 
+  // Everything the recap needs is already in hand — `invitation.questions`
+  // came back with its options, and `submissions` holds the chosen ids — so
+  // this costs no extra query.
+  const recap: RecapItem[] = invitation.questions.map((question) => {
+    const submission = submissions.find((item) => item.questionId === question.id);
+    const option = question.options.find((item) => item.id === submission?.selectedOptionId);
+    return { question: question.text, answer: option?.label ?? "—" };
+  });
+
   const locale = isLocale(invitation.locale) ? invitation.locale : DEFAULT_LOCALE;
   const link = `${new URL(request.url).origin}/${locale}/answers/${invitation.id}`;
-  const { subject, text } = answeredEmail({
+  const { subject, text, html } = answeredEmail({
     locale,
     recipientName: invitation.recipientName,
+    mascot: invitation.mascot,
     link,
+    recap,
   });
 
   // A blank creatorEmail is "nothing to notify", not a send failure — legacy
@@ -97,7 +108,7 @@ export async function POST(
   const notify = invitation.creatorEmail.trim();
   if (notify) {
     try {
-      await sendMail({ to: notify, subject, text });
+      await sendMail({ to: notify, subject, text, html });
     } catch (error) {
       console.error("Failed to send invitation-answered email:", error);
       // The recipient can safely retry — nothing from this attempt survives.

@@ -132,4 +132,16 @@ export const he = {
   "email.created.body": "ההזמנה ל{name} מוכנה. הקישור לשליחה: {link}",
   "email.answered.subject": "{name} ענתה על ההזמנה! 🎉",
   "email.answered.body": "{name} ענתה על ההזמנה שלך. לצפייה בתשובות: {link}",
+
+  "email.created.heading": "ההזמנה ל{name} מוכנה",
+  "email.created.intro": "הכול מוכן. שלחו לה את הקישור והיא תוכל לענות.",
+  "email.created.cta": "פתיחת ההזמנה",
+  "email.created.linkHint": "או העתיקו את הקישור:",
+  "email.preheader.created": "הקישור לשליחה מחכה בפנים 💌",
+  "email.answered.heading": "{name} ענתה! 🎉",
+  "email.answered.intro": "היא בחרה את התוכנית שלה:",
+  "email.answered.recapTitle": "התשובות",
+  "email.answered.cta": "צפייה בתשובות",
+  "email.preheader.answered": "התשובות מחכות בפנים 🎉",
+  "email.footer": "נשלח אוטומטית מ־SayYes",
 } as const;

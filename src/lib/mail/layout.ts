@@ -68,7 +68,12 @@ export function emailShell({
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="${BLUSH}" style="background-color:${BLUSH};">
   <tr>
     <td align="center" style="padding:28px 12px;">
-      <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" dir="${dir}" style="width:600px;max-width:100%;background-color:${WHITE};border-radius:28px;overflow:hidden;font-family:${FONT};color:${ROSE_INK};">
+      <!-- width="100%" + max-width, not width="600": a fixed 600 makes the
+           card overflow sideways on a phone, because max-width:100% resolves
+           against a shrink-to-fit parent and never wins. Outlook desktop
+           ignores max-width and renders at its own fixed width, which is fine
+           there. -->
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" dir="${dir}" style="width:100%;max-width:600px;background-color:${WHITE};border-radius:28px;overflow:hidden;font-family:${FONT};color:${ROSE_INK};">
         <tr>
           <!-- bgcolor is the Outlook fallback; it ignores the gradient. -->
           <td align="center" bgcolor="${ROSE_DEEP}" style="background-color:${ROSE_DEEP};background-image:linear-gradient(180deg,${ROSE_SOFT},${ROSE_DEEP});padding:34px 24px;">
@@ -110,13 +115,22 @@ export function recapTable({
   const answerAlign = dir === "rtl" ? "left" : "right";
   const questionAlign = dir === "rtl" ? "right" : "left";
 
+  // Each row is a nested table so the rounded background is one continuous
+  // pill. Putting the radius on the two cells instead leaves a visible seam
+  // where they meet, which reads as a rendering bug.
   const rows = items
     .map(
       ({ question, answer }) => `  <tr>
-    <td align="${questionAlign}" style="padding:12px 16px;background-color:${BLUSH};border-radius:14px;font-size:15px;color:${INK_MUTED};">${escapeHtml(question)}</td>
-    <td align="${answerAlign}" style="padding:12px 16px;background-color:${BLUSH};border-radius:14px;font-size:16px;font-weight:bold;color:${ROSE_DEEP};">${escapeHtml(answer)}</td>
+    <td bgcolor="${BLUSH}" style="background-color:${BLUSH};border-radius:14px;">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" dir="${dir}" style="width:100%;">
+        <tr>
+          <td align="${questionAlign}" style="padding:12px 16px;font-family:${FONT};font-size:15px;color:${INK_MUTED};">${escapeHtml(question)}</td>
+          <td align="${answerAlign}" style="padding:12px 16px;font-family:${FONT};font-size:16px;font-weight:bold;color:${ROSE_DEEP};">${escapeHtml(answer)}</td>
+        </tr>
+      </table>
+    </td>
   </tr>
-  <tr><td colspan="2" style="height:8px;line-height:8px;font-size:0;">&nbsp;</td></tr>`
+  <tr><td style="height:8px;line-height:8px;font-size:0;">&nbsp;</td></tr>`
     )
     .join("\n");
 

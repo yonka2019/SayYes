@@ -128,4 +128,16 @@ export const ru: Dictionary = {
   "email.created.body": "Приглашение для {name} готово. Ссылка для отправки: {link}",
   "email.answered.subject": "{name} ответила на приглашение! 🎉",
   "email.answered.body": "{name} ответила на ваше приглашение. Посмотреть ответы: {link}",
+
+  "email.created.heading": "Приглашение для {name} готово",
+  "email.created.intro": "Всё готово. Отправьте ей ссылку, и она сможет ответить.",
+  "email.created.cta": "Открыть приглашение",
+  "email.created.linkHint": "Или скопируйте ссылку:",
+  "email.preheader.created": "Ссылка для отправки внутри 💌",
+  "email.answered.heading": "{name} ответила! 🎉",
+  "email.answered.intro": "Она выбрала свой план:",
+  "email.answered.recapTitle": "Ответы",
+  "email.answered.cta": "Посмотреть ответы",
+  "email.preheader.answered": "Ответы внутри 🎉",
+  "email.footer": "Отправлено автоматически из SayYes",
 };

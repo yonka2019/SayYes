@@ -39,10 +39,14 @@ export async function sendMail({
   to,
   subject,
   text,
+  html,
 }: {
   to: string;
   subject: string;
   text: string;
+  html: string;
 }): Promise<void> {
-  await getTransport().sendMail({ from: FROM_ADDRESS, to, subject, text });
+  // Both parts go out as multipart/alternative: the client picks, and a
+  // text-only reader still gets the whole message.
+  await getTransport().sendMail({ from: FROM_ADDRESS, to, subject, text, html });
 }

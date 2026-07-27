@@ -83,9 +83,10 @@ export async function POST(request: Request) {
   });
 
   const link = `${new URL(request.url).origin}/${invitation.locale}/invite/${invitation.id}`;
-  const { subject, text } = createdEmail({
+  const { subject, text, html } = createdEmail({
     locale: draft.locale,
     recipientName: invitation.recipientName,
+    mascot: invitation.mascot,
     link,
   });
 
@@ -94,7 +95,7 @@ export async function POST(request: Request) {
   const notify = invitation.creatorEmail.trim();
   if (notify) {
     try {
-      await sendMail({ to: notify, subject, text });
+      await sendMail({ to: notify, subject, text, html });
     } catch (error) {
       console.error("Failed to send invitation-created email:", error);
       // Cascades delete the invitation's questions/options — no orphan rows.

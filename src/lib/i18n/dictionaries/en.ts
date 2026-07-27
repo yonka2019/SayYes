@@ -127,4 +127,16 @@ export const en: Dictionary = {
   "email.created.body": "The invitation for {name} is ready. Link to send: {link}",
   "email.answered.subject": "{name} answered the invitation! 🎉",
   "email.answered.body": "{name} answered your invitation. See the answers: {link}",
+
+  "email.created.heading": "The invitation for {name} is ready",
+  "email.created.intro": "All set. Send her the link and she can answer.",
+  "email.created.cta": "Open the invitation",
+  "email.created.linkHint": "Or copy the link:",
+  "email.preheader.created": "The link to send is inside 💌",
+  "email.answered.heading": "{name} answered! 🎉",
+  "email.answered.intro": "She picked her plan:",
+  "email.answered.recapTitle": "The answers",
+  "email.answered.cta": "See the answers",
+  "email.preheader.answered": "The answers are inside 🎉",
+  "email.footer": "Sent automatically by SayYes",
 };

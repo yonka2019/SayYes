@@ -101,8 +101,9 @@ describe("recapTable", () => {
     expect(html).toContain("Sushi");
     expect(html).toContain("When?");
     expect(html).toContain("Friday");
-    // Two items x two cells, each cell carrying the row's rounded corner.
-    expect(html.match(/border-radius:14px/g)).toHaveLength(4);
+    // One rounded pill per item, not one per cell — a per-cell radius leaves a
+    // visible seam between the question and the answer.
+    expect(html.match(/border-radius:14px/g)).toHaveLength(2);
   });
 
   it("escapes creator-typed questions and answers", () => {
