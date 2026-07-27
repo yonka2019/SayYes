@@ -1,7 +1,7 @@
 import type { Locale } from "./i18n/locales";
 import type { MessageKey } from "./i18n/t";
 
-export type MascotKind = "BEAR" | "PENGUIN";
+export type MascotKind = "BEAR" | "PENGUIN" | "BUNNY" | "CAT" | "FOX" | "PANDA";
 export type InvitationStatus = "PENDING" | "ANSWERED";
 
 /** Mascot moods the SVG mascots know how to render. */

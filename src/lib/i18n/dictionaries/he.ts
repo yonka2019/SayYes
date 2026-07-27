@@ -13,6 +13,10 @@ export const he = {
 
   "mascot.bear": "דובי",
   "mascot.penguin": "פינגווין",
+  "mascot.bunny": "ארנב",
+  "mascot.cat": "חתול",
+  "mascot.fox": "שועל",
+  "mascot.panda": "פנדה",
 
   "dashboard.title": "ההזמנות שלי",
   "dashboard.subtitle": "כל ההזמנות שיצרתם",

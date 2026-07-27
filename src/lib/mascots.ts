@@ -8,12 +8,23 @@ import type { MascotKind } from "./types";
  *
  * Order is the builder's display order.
  */
-export const MASCOT_KINDS: readonly MascotKind[] = ["BEAR", "PENGUIN"];
+export const MASCOT_KINDS: readonly MascotKind[] = [
+  "BEAR",
+  "PENGUIN",
+  "BUNNY",
+  "CAT",
+  "FOX",
+  "PANDA",
+];
 
 /** Accessible names live in the dictionaries — `src/lib/` has no locale. */
 export const MASCOT_NAME_KEY: Record<MascotKind, MessageKey> = {
   BEAR: "mascot.bear",
   PENGUIN: "mascot.penguin",
+  BUNNY: "mascot.bunny",
+  CAT: "mascot.cat",
+  FOX: "mascot.fox",
+  PANDA: "mascot.panda",
 };
 
 /**
@@ -24,4 +35,8 @@ export const MASCOT_NAME_KEY: Record<MascotKind, MessageKey> = {
 export const MASCOT_EMOJI: Record<MascotKind, string> = {
   BEAR: "🐻",
   PENGUIN: "🐧",
+  BUNNY: "🐰",
+  CAT: "🐱",
+  FOX: "🦊",
+  PANDA: "🐼",
 };

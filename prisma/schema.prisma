@@ -10,6 +10,10 @@ datasource db {
 enum Mascot {
   BEAR
   PENGUIN
+  BUNNY
+  CAT
+  FOX
+  PANDA
 }
 
 enum Status {

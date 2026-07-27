@@ -9,6 +9,7 @@ import { Mascot } from "@/components/Mascot";
 import { RecapCard } from "@/components/RecapCard";
 import { PLEA_KEYS } from "@/lib/dodge";
 import { t, type Dictionary, type MessageKey } from "@/lib/i18n/t";
+import { MASCOT_NAME_KEY } from "@/lib/mascots";
 import type { AnswerSubmission, InviteView, MascotMood, RecapItem } from "@/lib/types";
 
 type Stage = "gate" | "questions" | "finale";
@@ -136,10 +137,7 @@ export function InviteFlow({
     return { question: question?.text ?? "", answer: option?.label ?? "" };
   });
 
-  const mascotLabel = t(
-    dict,
-    invite.mascot === "BEAR" ? "mascot.bear" : "mascot.penguin"
-  );
+  const mascotLabel = t(dict, MASCOT_NAME_KEY[invite.mascot]);
   const pleas = PLEA_KEYS.map((key) => t(dict, key));
 
   if (stage === "gate") {

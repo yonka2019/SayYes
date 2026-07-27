@@ -254,7 +254,7 @@ export function BuilderForm({ locale, dict }: { locale: Locale; dict: Dictionary
 
         <div className="mt-6">
           <Label>{t(dict, "builder.mascot.label")}</Label>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
             {MASCOT_KINDS.map((kind) => {
               const selected = draft.mascot === kind;
               const name = t(dict, MASCOT_NAME_KEY[kind]);
@@ -273,7 +273,7 @@ export function BuilderForm({ locale, dict }: { locale: Locale; dict: Dictionary
                   <Mascot
                     kind={kind}
                     mood={selected ? "wave" : "idle"}
-                    size={110}
+                    size={96}
                     label={name}
                   />
                   <span className="font-bold">{name}</span>

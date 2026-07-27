@@ -8,6 +8,10 @@ export const en: Dictionary = {
 
   "mascot.bear": "Bear",
   "mascot.penguin": "Penguin",
+  "mascot.bunny": "Bunny",
+  "mascot.cat": "Cat",
+  "mascot.fox": "Fox",
+  "mascot.panda": "Panda",
 
   "dashboard.title": "My invitations",
   "dashboard.subtitle": "Every invitation you've created",

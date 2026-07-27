@@ -8,6 +8,10 @@ export const ru: Dictionary = {
 
   "mascot.bear": "Мишка",
   "mascot.penguin": "Пингвин",
+  "mascot.bunny": "Зайка",
+  "mascot.cat": "Котик",
+  "mascot.fox": "Лисёнок",
+  "mascot.panda": "Панда",
 
   "dashboard.title": "Мои приглашения",
   "dashboard.subtitle": "Все приглашения, которые вы создали",

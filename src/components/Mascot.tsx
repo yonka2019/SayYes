@@ -2,6 +2,10 @@
 
 import { motion } from "framer-motion";
 import { Bear } from "@/components/mascots/Bear";
+import { Bunny } from "@/components/mascots/Bunny";
+import { Cat } from "@/components/mascots/Cat";
+import { Fox } from "@/components/mascots/Fox";
+import { Panda } from "@/components/mascots/Panda";
 import { Penguin } from "@/components/mascots/Penguin";
 import { bodyMotion, bodyTiming, type MascotPartProps } from "@/components/mascots/motion";
 import type { MascotKind, MascotMood } from "@/lib/types";
@@ -19,6 +23,10 @@ const HEADROOM = 44;
 const ART: Record<MascotKind, (props: MascotPartProps) => React.ReactElement> = {
   BEAR: Bear,
   PENGUIN: Penguin,
+  BUNNY: Bunny,
+  CAT: Cat,
+  FOX: Fox,
+  PANDA: Panda,
 };
 
 /**

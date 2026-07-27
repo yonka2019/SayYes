@@ -5,9 +5,9 @@ import {
   MAX_TEXT_LENGTH,
   MIN_OPTIONS,
 } from "./defaults";
+import { MASCOT_KINDS } from "./mascots";
 import type { Draft, DraftErrors, FieldError, QuestionFieldErrors } from "./types";
 
-const MASCOTS = ["BEAR", "PENGUIN"] as const;
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 function validateQuestionOptions(options: string[]): FieldError | undefined {
@@ -52,7 +52,7 @@ export function validateDraft(draft: Draft): { valid: boolean; errors: DraftErro
     errors.creatorEmail = { code: "error.email.invalid" };
   }
 
-  if (draft.mascot === null || !MASCOTS.includes(draft.mascot)) {
+  if (draft.mascot === null || !MASCOT_KINDS.includes(draft.mascot)) {
     errors.mascot = { code: "error.mascot.required" };
   }
 
