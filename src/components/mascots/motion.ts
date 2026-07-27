@@ -30,8 +30,6 @@ export const armMotion: Record<MascotMood, { rotate: number[] }> = {
   cheer: { rotate: [0, -70, -40, -70, 0] },
 };
 
-/**
- * Characters must stay inside y 0-200 of the 200-wide grid. The band above y=0
- * is headroom reserved for the cheer hearts — see `HEADROOM` in Mascot.tsx.
- */
-export const FLOOR = 200;
+// Geometry invariant for every character in this directory: stay inside
+// y 0-200 of the 200-wide grid. The band above y=0 is headroom reserved for the
+// cheer hearts — see `HEADROOM` in Mascot.tsx.
