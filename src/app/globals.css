@@ -11,6 +11,12 @@
 }
 
 @layer base {
+  html {
+    /* Global scale: every Tailwind size is rem-based, so shrinking the root
+       font-size shrinks the whole UI proportionally. */
+    font-size: 87.5%;
+  }
+
   html,
   body {
     font-family: var(--font-cute);
