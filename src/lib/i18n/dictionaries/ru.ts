@@ -13,24 +13,7 @@ export const ru: Dictionary = {
   "mascot.fox": "Лисёнок",
   "mascot.panda": "Панда",
 
-  "dashboard.title": "Мои приглашения",
-  "dashboard.subtitle": "Все приглашения, которые вы создали",
-  "dashboard.new": "+ Новое приглашение",
-  "dashboard.empty.text": "Вы ещё не создали ни одного приглашения.",
-  "dashboard.empty.cta": "Создать первое приглашение",
-  "dashboard.status.answered": "Ответила",
-  "dashboard.status.pending": "Ждём ответа",
-  "dashboard.createdAt": "Создано {date}",
-  "dashboard.answeredAt": "ответ {date}",
-  "dashboard.copy": "Копировать ссылку",
-  "dashboard.copied": "Скопировано!",
-  "dashboard.answers": "Ответы",
-  "dashboard.close": "Закрыть",
-  "dashboard.open": "Открыть",
-  "dashboard.recapTitle": "Что выбрала {name}",
-
   "builder.title": "Новое приглашение",
-  "builder.back": "← К списку",
   "builder.name.label": "Для кого приглашение?",
   "builder.name.placeholder": "Её имя",
   "builder.email.label": "Ваш email",
@@ -55,7 +38,7 @@ export const ru: Dictionary = {
   "builder.done.note":
     "Ссылку можно отправить в любом мессенджере. Ответить на неё можно только один раз.",
   "builder.done.preview": "Предпросмотр",
-  "builder.done.back": "Вернуться к списку",
+  "builder.done.another": "Создать ещё одно приглашение",
 
   "invite.gate.intro": "Привет, {name}, я хочу кое-что спросить...",
   "invite.yes": "Да",
@@ -117,7 +100,6 @@ export const ru: Dictionary = {
   "answers.title": "Ответы {name}",
   "answers.answeredAt": "Ответила {date}",
   "answers.recapTitle": "Что она выбрала",
-  "answers.back": "Ко всем приглашениям",
   "answers.waiting.title": "Ждём ответа от {name}",
   "answers.waiting.text": "Приглашение отправлено, но ответа пока нет.",
   "answers.waiting.cta": "Открыть приглашение",
@@ -140,4 +122,7 @@ export const ru: Dictionary = {
   "email.answered.cta": "Посмотреть ответы",
   "email.preheader.answered": "Ответы внутри 🎉",
   "email.footer": "Отправлено автоматически из SayYes",
+
+  "footer.credit": "by yonka",
+  "footer.github": "GitHub",
 };

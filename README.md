@@ -8,7 +8,9 @@ logistics questions) in whichever of the three languages you're working in, get
 a shareable link, and send it. She opens it, has to say "yes" to the gate
 question, answers the logistics questions, and lands on a confetti finale with a
 recap of everything she picked. You get an email with her answers in it, linking
-to a page for that one invitation; they also show up on your dashboard.
+to a page for that one invitation. The builder is the home page — there is no
+dashboard listing invitations (the app has no auth, so a list page would show
+every invitation and answer to anyone with the URL).
 
 The "no" button doesn't cooperate: it bolts away from the cursor before it can
 be hovered, and any click that does land shrinks it and adds an escalating plea
@@ -65,7 +67,7 @@ wrong-language flash. `/api/*` is never redirected.
 invitation is created, and `/{locale}/invite/{token}` redirects to the
 invitation's own locale if they differ — so the recipient never sees Hebrew
 content next to Russian buttons. `/{locale}/answers/{token}` redirects the same
-way. For that reason, the language switcher (dashboard and builder, a segmented
+way. For that reason, the language switcher (on the builder, a segmented
 control showing all three languages with the current one filled) doesn't appear
 on the invite or answers pages — the content can't follow a switch there.
 
@@ -119,10 +121,9 @@ middleware adds the prefix automatically if a request arrives without one.
 
 | Route | Who | What |
 |---|---|---|
-| `/{locale}` | creator | Dashboard: every invitation across all locales, each with a locale badge, status, created/answered time, copy link, inline recap for answered ones |
-| `/{locale}/new` | creator | Builder: name, email, one of six characters, gate question, questions with 2–4 options each, in `{locale}` → generates the link |
+| `/{locale}` | creator | Builder (the home page): name, email, one of six characters, gate question, questions with 2–4 options each, in `{locale}` → generates the link |
 | `/{locale}/invite/[token]` | recipient | Gate screen → one question at a time → confetti finale, in the invitation's own locale (redirects here if `{locale}` doesn't match). Reopening an answered link shows a read-only recap. Unknown token gets a cute "not found" card. |
-| `/{locale}/answers/[token]` | creator | One invitation's answers — where the "she answered" email points. Cheering mascot, answered time, full recap, link back to the dashboard. Still pending shows a waiting card with a link through to the invitation; unknown token gets the same cute "not found" card. Redirects to the invitation's own locale. |
+| `/{locale}/answers/[token]` | creator | One invitation's answers — where the "she answered" email points. Cheering mascot, answered time, full recap. Still pending shows a waiting card with a link through to the invitation; unknown token gets the same cute "not found" card. Redirects to the invitation's own locale. |
 | `POST /api/invitations` | — | Create an invitation from a builder draft, storing its `locale`. Returns `201` on success or `400 { code: "api.emailFailed" }` if the creation email fails to send (the invitation is deleted and the request is rolled back). |
 | `POST /api/invitations/[token]/answers` | — | Submit all answers, mark the invitation `ANSWERED`. Returns `200` on success or `400 { code: "api.emailFailed" }` if the answered email fails to send (answers are deleted and the invitation reverts to `PENDING`, rolled back). |
 
@@ -130,12 +131,11 @@ middleware adds the prefix automatically if a request arrives without one.
 
 - Running locally, the generated link only resolves while your dev server is up.
   Deployed to Vercel it's a normal public URL.
-- No auth: it's a single-user tool, and the dashboard lists **every** invitation
-  in the database. Anyone who reaches the deployed `/` sees them all, so treat
-  the URL as private. The create-invitation endpoint sends mail to whatever
-  address the caller supplies, from the verified `noreply@sayyes.fun` domain —
-  so the deployed create-invitation URL must stay private for that reason too,
-  not just because of data exposure.
+- No auth: it's a single-user tool. There's deliberately no page listing
+  invitations — each one is reachable only by its token link, and your copies
+  of those links arrive by email. Still treat the deployed URL as private: the
+  create-invitation endpoint sends mail to whatever address the caller
+  supplies, from the verified `noreply@sayyes.fun` domain.
 - `DATABASE_URL` is required — the app throws a clear error at startup rather
   than failing on the first query.
 - `SMTP_PASSWORD` is required to actually send mail — `src/lib/mail/send.ts`
@@ -169,12 +169,13 @@ src/lib/i18n/dictionaries/     he.ts (source of truth), ru.ts, en.ts
 src/lib/mail/                  content.ts (pure {subject,text,html} builders per locale),
                                layout.ts (email HTML primitives + escapeHtml), send.ts
                                (nodemailer SMTP transport via Resend, needs SMTP_PASSWORD)
-src/app/[locale]/              routes: /{locale}, /{locale}/new, /{locale}/invite/[token],
-                               /{locale}/answers/[token]
+src/app/[locale]/              routes: /{locale} (the builder), /{locale}/invite/[token],
+                               /{locale}/answers/[token]; layout.tsx adds the
+                               site-wide "by yonka" + GitHub footer
 src/app/api/                   /api/invitations, /api/invitations/[token]/answers (no locale prefix)
 src/components/                CuteCard, Mascot, HeartButton, DodgeButton,
                                Sparkles, RecapCard, BuilderForm, InviteFlow,
-                               DashboardList, LanguageSwitcher
+                               LanguageSwitcher
 src/components/mascots/        one file per character (Bear, Penguin, Bunny, Cat, Fox,
                                Panda) + motion.ts (shared mood keyframes)
 tests/                         Vitest specs for dodge + validation + i18n + mascot

@@ -209,12 +209,15 @@ export function BuilderForm({ locale, dict }: { locale: Locale; dict: Dictionary
           >
             {t(dict, "builder.done.preview")}
           </Link>
-          <Link
+          {/* Plain <a>, not <Link>: the builder lives at this same URL, so a
+              client-side navigation would keep this success screen mounted.
+              A full load re-seeds a fresh draft. */}
+          <a
             href={`/${locale}`}
             className="rounded-2xl border-2 border-blush-deep px-5 py-2.5 font-bold text-rose-ink/70 transition hover:bg-blush"
           >
-            {t(dict, "builder.done.back")}
-          </Link>
+            {t(dict, "builder.done.another")}
+          </a>
         </div>
       </motion.div>
     );

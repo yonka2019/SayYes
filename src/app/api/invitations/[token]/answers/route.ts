@@ -43,7 +43,7 @@ export async function POST(
     where: { id: token },
     // Ordered because the notification email's recap is built from this, and it
     // has to read in the same order the creator wrote the questions — the same
-    // order the answers page, dashboard and finale all show. Validation alone
+    // order the answers page and finale both show. Validation alone
     // wouldn't care, which is why this query used to be unordered.
     include: { questions: { orderBy: { order: "asc" }, include: { options: true } } },
   });

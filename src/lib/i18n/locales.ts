@@ -36,7 +36,7 @@ export function isLocale(value: unknown): value is Locale {
   return typeof value === "string" && (LOCALES as readonly string[]).includes(value);
 }
 
-/** Split `/ru/new` into `{ locale: "ru", rest: "/new" }`. */
+/** Split `/ru/invite/x` into `{ locale: "ru", rest: "/invite/x" }`. */
 export function localeFromPath(pathname: string): { locale: Locale | null; rest: string } {
   const match = /^\/([^/]+)(\/.*)?$/.exec(pathname);
   if (!match || !isLocale(match[1])) return { locale: null, rest: pathname };

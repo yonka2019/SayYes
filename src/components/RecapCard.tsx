@@ -1,7 +1,7 @@
 import type { RecapItem } from "@/lib/types";
 
 /**
- * The "here's everything you picked" list — shared by the finale and dashboard.
+ * The "here's everything you picked" list — shared by the finale and answers page.
  *
  * `title` and `emptyText` have no defaults on purpose: a default would be a
  * user-facing string literal in one fixed language.

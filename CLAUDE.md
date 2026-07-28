@@ -11,10 +11,18 @@ Implementation plans:
 `docs/superpowers/plans/2026-07-26-email-notifications.md` (creator email
 notifications),
 `docs/superpowers/plans/2026-07-27-emails-answers-page-mascots.md` (HTML emails,
-answers page, language pills, six characters, heart fix).
+answers page, language pills, six characters, heart fix),
+`docs/superpowers/plans/2026-07-28-remove-home-page.md` (dashboard removal,
+builder as home, footer credit).
 
 ## Hard rules for this project
 
+- **There is no dashboard and no home listing — deliberately.** The builder *is*
+  the home page (`/{locale}`). The app has no auth, so a page listing every
+  invitation (the old dashboard, removed 2026-07-28 along with `/new` and
+  `DashboardList`) exposed all recipients and answers to anyone with the
+  deployed URL. Invitations are reachable only by token link; the creator's
+  copies live in the two notification emails. Don't reintroduce a list page.
 - **Three languages: `he`, `ru`, `en`.** All chrome resolves through
   `src/lib/i18n/` — never put a user-facing literal in a component or route.
   `he` is `DEFAULT_LOCALE` *and* the source-of-truth dictionary
@@ -83,7 +91,7 @@ answers page, language pills, six characters, heart fix).
 - **The creator's email is required** and stored on `Invitation.creatorEmail`.
   Two notification emails go out via `src/lib/mail/`: one when an invitation is
   created (share link) and one when it's answered (**includes the answer
-  recap**, and links to `/{locale}/answers/{token}`, not the dashboard). Both
+  recap**, and links to `/{locale}/answers/{token}`). Both
   use the invitation's own locale. A failed send **fails the request** — the API
   compensates by rolling back what it just wrote (deleting the invitation, or
   deleting the just-inserted answers and reverting `ANSWERED` back to
@@ -147,11 +155,19 @@ answers page, language pills, six characters, heart fix).
     (`smtp.resend.com:465`), lazily created on first `sendMail()` call rather
     than at import so `npm run build` doesn't require `SMTP_PASSWORD`; not unit
     tested (verified manually).
-- Server components query Prisma directly (`/`, `/invite/[token]`,
-  `/answers/[token]`); client components own interaction state (`BuilderForm`,
-  `InviteFlow`, `DashboardList`).
-- All three dynamic pages set `export const dynamic = "force-dynamic"` so
+- Server components query Prisma directly (`/invite/[token]`,
+  `/answers/[token]`); `/{locale}` is the builder and touches no DB. Client
+  components own interaction state (`BuilderForm`, `InviteFlow`).
+- Both token pages set `export const dynamic = "force-dynamic"` so
   freshly created/answered invitations always show.
+- The locale layout renders a site-wide footer: "by yonka" + a GitHub-icon
+  link to `https://github.com/yonka2019/SayYes`. Its strings are the
+  `footer.*` dictionary keys, the body is `flex min-h-screen flex-col` so the
+  footer sits at the viewport bottom on short pages.
+- The builder's success screen links "create another invitation" to
+  `/{locale}` with a plain `<a>`, not `<Link>` — the builder lives at that
+  same URL, so a client-side navigation would keep the success state mounted
+  instead of re-seeding a fresh draft.
 - `Mascot.tsx` is the SVG shell (viewBox, headroom, hearts, mood wiring) and
   nothing else; each character is its own file under `src/components/mascots/`
   with the shared mood keyframes in `mascots/motion.ts`.
@@ -172,9 +188,9 @@ answers page, language pills, six characters, heart fix).
 - Keep animated *wrappers* separate from click targets — pulsing the button
   itself makes it an unstable hit box (and unclickable for Playwright).
 - **Phone width (390px) is the primary recipient viewport.** Rows that pack a
-  label plus several buttons must `flex-wrap` (see `DashboardList` rows and the
-  builder's question header) — check `document.body.scrollWidth <=
-  window.innerWidth` after layout changes.
+  label plus several buttons must `flex-wrap` (see the builder's question
+  header) — check `document.body.scrollWidth <= window.innerWidth` after
+  layout changes.
 
 ## Verification
 
@@ -197,11 +213,11 @@ generated *types* are still written, so a type check is trustworthy; stop the
 dev server if you need the engine swapped too.
 
 Manual click-through is part of "done" here, per the spec's testing section, and
-now repeats **per locale** (`he` RTL, `ru` LTR, `en` LTR): dashboard → switcher
-(three pills; check the active one is a no-op) → builder (incl. validation
-errors, all six characters) → link → gate (try to catch "no") → questions →
-finale → answers page → back to dashboard → reload link (read-only recap) →
-dashboard recap. Also worth re-checking: `/{other-locale}/invite/{token}` and
+now repeats **per locale** (`he` RTL, `ru` LTR, `en` LTR): builder at `/{locale}`
+(incl. switcher — three pills, active one a no-op — validation errors, all six
+characters) → link → gate (try to catch "no") → questions → finale → answers
+page → reload link (read-only recap). `/{locale}/new` is gone and must 404.
+Also worth re-checking: `/{other-locale}/invite/{token}` and
 `/{other-locale}/answers/{token}` redirect to the invitation's own locale; a
 fresh visit with `Accept-Language: ru-RU` lands on `/ru`; an unknown locale
 segment (`/de`) 404s (after one middleware hop that prefixes it, so

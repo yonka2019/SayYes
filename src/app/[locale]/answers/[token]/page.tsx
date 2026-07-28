@@ -132,10 +132,6 @@ export default async function AnswersPage({
               />
             </div>
           </CuteCard>
-
-          <Link href={`/${locale}`} className="font-bold text-rose-deep underline">
-            {t(dict, "answers.back")}
-          </Link>
         </div>
       </main>
     </>
