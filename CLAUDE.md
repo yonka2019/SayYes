@@ -88,6 +88,13 @@ builder as home, footer credit).
   shrink + plea carry the interaction.
 - **Gate question comes first.** Logistics questions only render after "כן".
 - **One answer set per invitation.** Reopening an answered link is read-only.
+- **Preview never persists.** The builder's success-screen preview opens
+  `/{locale}/invite/{token}?preview=1`: the full flow runs, but
+  `InviteFlow.submit()` skips the POST, the invitation stays `PENDING`, and a
+  badge says answers aren't saved. Without it, previewing consumed the one
+  answer set and locked the real recipient out. The locale redirect must keep
+  the param. A recipient adding `?preview=1` herself just doesn't get saved —
+  accepted, the shared link doesn't carry it.
 - **The creator's email is required** and stored on `Invitation.creatorEmail`.
   Two notification emails go out via `src/lib/mail/`: one when an invitation is
   created (share link) and one when it's answered (**includes the answer

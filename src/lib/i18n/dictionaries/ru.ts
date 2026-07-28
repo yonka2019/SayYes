@@ -48,6 +48,7 @@ export const ru: Dictionary = {
   "invite.finale.text": "Спасибо, {name}, я уже волнуюсь. До встречи!",
   "invite.missing.title": "Ой, приглашение не найдено",
   "invite.missing.text": "Похоже, ссылка неверная. Может, попросить её заново?",
+  "invite.preview.badge": "Предпросмотр — ответы не сохраняются",
   "invite.answered.title": "Всё уже решено 💕",
   "invite.answered.text": "{name}, вот твои ответы — до встречи на свидании!",
 

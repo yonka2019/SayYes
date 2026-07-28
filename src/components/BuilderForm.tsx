@@ -204,7 +204,7 @@ export function BuilderForm({ locale, dict }: { locale: Locale; dict: Dictionary
 
         <div className="mt-6 flex flex-wrap justify-center gap-3">
           <Link
-            href={`/${locale}/invite/${createdId}`}
+            href={`/${locale}/invite/${createdId}?preview=1`}
             className="rounded-2xl border-2 border-rose-soft px-5 py-2.5 font-bold text-rose-deep transition hover:bg-blush"
           >
             {t(dict, "builder.done.preview")}

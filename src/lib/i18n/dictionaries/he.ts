@@ -52,6 +52,7 @@ export const he = {
   "invite.finale.text": "תודה {name}, אני כבר מתרגש. נתראה!",
   "invite.missing.title": "אופס, ההזמנה לא נמצאה",
   "invite.missing.text": "כנראה שהקישור לא מדויק. אולי כדאי לבקש אותו שוב?",
+  "invite.preview.badge": "תצוגה מקדימה — התשובות לא נשמרות",
   "invite.answered.title": "כבר סגרנו הכול 💕",
   "invite.answered.text": "{name}, אלה התשובות ששלחת — נתראה בדייט!",
 

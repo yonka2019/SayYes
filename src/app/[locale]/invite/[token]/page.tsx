@@ -29,11 +29,14 @@ function MissingInvitation({ dict }: { dict: Dictionary }) {
 
 export default async function InvitePage({
   params,
+  searchParams,
 }: {
   params: Promise<{ locale: string; token: string }>;
+  searchParams: Promise<{ preview?: string }>;
 }) {
   const { locale, token } = await params;
   if (!isLocale(locale)) notFound();
+  const preview = (await searchParams).preview === "1";
 
   const invitation = await prisma.invitation.findUnique({
     where: { id: token },
@@ -61,7 +64,7 @@ export default async function InvitePage({
   // The invitation's language wins: its content can't be translated, so the
   // chrome has to come to it rather than the other way round.
   const owned: Locale = isLocale(invitation.locale) ? invitation.locale : DEFAULT_LOCALE;
-  if (owned !== locale) redirect(`/${owned}/invite/${token}`);
+  if (owned !== locale) redirect(`/${owned}/invite/${token}${preview ? "?preview=1" : ""}`);
 
   const dict = getDictionary(owned);
 
@@ -77,7 +80,18 @@ export default async function InvitePage({
             dict={dict}
           />
         ) : (
-          <InviteFlow invite={toInviteView(invitation, token, owned)} dict={dict} />
+          <div className="flex flex-col items-center gap-3">
+            {preview && (
+              <p className="rounded-full bg-rose-deep/10 px-4 py-1.5 text-center text-sm font-bold text-rose-deep">
+                {t(dict, "invite.preview.badge")}
+              </p>
+            )}
+            <InviteFlow
+              invite={toInviteView(invitation, token, owned)}
+              dict={dict}
+              preview={preview}
+            />
+          </div>
         )}
       </main>
     </>

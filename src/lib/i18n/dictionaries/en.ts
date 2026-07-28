@@ -47,6 +47,7 @@ export const en: Dictionary = {
   "invite.finale.text": "Thank you {name}, I'm already excited. See you!",
   "invite.missing.title": "Oops, that invitation isn't here",
   "invite.missing.text": "The link looks off. Maybe ask for it again?",
+  "invite.preview.badge": "Preview — answers aren't saved",
   "invite.answered.title": "It's all settled 💕",
   "invite.answered.text": "{name}, these are the answers you sent — see you on the date!",
 

@@ -46,9 +46,11 @@ function ProgressDots({ total, current }: { total: number; current: number }) {
 export function InviteFlow({
   invite,
   dict,
+  preview = false,
 }: {
   invite: InviteView;
   dict: Dictionary;
+  preview?: boolean;
 }) {
   const [stage, setStage] = useState<Stage>("gate");
   const [index, setIndex] = useState(0);
@@ -92,6 +94,13 @@ export function InviteFlow({
   }, [stage]);
 
   async function submit(answers: AnswerSubmission[]) {
+    // Preview never persists: the invitation stays PENDING so the real
+    // recipient can still answer. Straight to the finale.
+    if (preview) {
+      setMood("cheer");
+      setStage("finale");
+      return;
+    }
     setSubmitting(true);
     setSubmitError(null);
     try {
