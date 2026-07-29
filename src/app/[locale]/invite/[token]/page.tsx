@@ -80,7 +80,9 @@ export default async function InvitePage({
             dict={dict}
           />
         ) : (
-          <div className="flex flex-col items-center gap-3">
+          // w-full: items-center makes children shrink-to-fit, and the card's
+          // own w-full needs a full-width box to resolve against.
+          <div className="flex w-full max-w-md flex-col items-center gap-3">
             {preview && (
               <p className="rounded-full bg-rose-deep/10 px-4 py-1.5 text-center text-sm font-bold text-rose-deep">
                 {t(dict, "invite.preview.badge")}

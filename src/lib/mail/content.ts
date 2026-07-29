@@ -1,5 +1,5 @@
 import { DIR, type Locale } from "@/lib/i18n/locales";
-import { getDictionary, t } from "@/lib/i18n/t";
+import { getDictionary, t, tg, type RecipientGender } from "@/lib/i18n/t";
 import { MASCOT_EMOJI } from "@/lib/mascots";
 import type { MascotKind, RecapItem } from "@/lib/types";
 import {
@@ -31,11 +31,13 @@ const spacer = `<div style="height:24px;line-height:24px;font-size:0;">&nbsp;</d
 export function createdEmail({
   locale,
   recipientName,
+  gender = "SHE",
   mascot,
   link,
 }: {
   locale: Locale;
   recipientName: string;
+  gender?: RecipientGender;
   mascot: MascotKind;
   link: string;
 }): EmailContent {
@@ -43,7 +45,7 @@ export function createdEmail({
 
   const body = [
     heading(t(dict, "email.created.heading", { name: recipientName })),
-    paragraph(t(dict, "email.created.intro")),
+    paragraph(tg(dict, "email.created.intro", gender)),
     button({ href: link, label: t(dict, "email.created.cta") }),
     linkFallback({ hint: t(dict, "email.created.linkHint"), href: link }),
     footer(t(dict, "email.footer")),
@@ -69,12 +71,14 @@ export function createdEmail({
 export function answeredEmail({
   locale,
   recipientName,
+  gender = "SHE",
   mascot,
   link,
   recap,
 }: {
   locale: Locale;
   recipientName: string;
+  gender?: RecipientGender;
   mascot: MascotKind;
   link: string;
   recap: RecapItem[];
@@ -82,8 +86,8 @@ export function answeredEmail({
   const dict = getDictionary(locale);
 
   const body = [
-    heading(t(dict, "email.answered.heading", { name: recipientName })),
-    paragraph(t(dict, "email.answered.intro")),
+    heading(tg(dict, "email.answered.heading", gender, { name: recipientName })),
+    paragraph(tg(dict, "email.answered.intro", gender)),
     // "" when there are no answers, so the layout closes up rather than
     // rendering an empty table.
     recapTable({ items: recap, dir: DIR[locale] }),
@@ -94,12 +98,12 @@ export function answeredEmail({
 
   // The plain-text part is the multipart fallback, so it carries the recap too.
   const recapText = recap.map(({ question, answer }) => `• ${question} — ${answer}`).join("\n");
-  const text = [t(dict, "email.answered.body", { name: recipientName, link }), recapText]
+  const text = [tg(dict, "email.answered.body", gender, { name: recipientName, link }), recapText]
     .filter(Boolean)
     .join("\n\n");
 
   return {
-    subject: t(dict, "email.answered.subject", { name: recipientName }),
+    subject: tg(dict, "email.answered.subject", gender, { name: recipientName }),
     text,
     html: emailShell({
       locale,

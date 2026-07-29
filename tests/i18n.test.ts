@@ -10,7 +10,7 @@ import {
   swapLocale,
 } from "@/lib/i18n/locales";
 import { he } from "@/lib/i18n/dictionaries/he";
-import { format, getDictionary, t } from "@/lib/i18n/t";
+import { format, getDictionary, t, tg } from "@/lib/i18n/t";
 import {
   MAX_OPTIONS,
   MIN_OPTIONS,
@@ -183,6 +183,30 @@ describe("dictionary integrity", () => {
       }
     }
   });
+
+  // tg() builds `${base}.her` / `${base}.him` untyped, so this is what keeps a
+  // lone gendered key from slipping through the type check.
+  it("gendered keys come in her/him twins", () => {
+    const keys = Object.keys(he);
+    for (const key of keys) {
+      if (key.endsWith(".her")) expect(keys, key).toContain(key.replace(/\.her$/, ".him"));
+      if (key.endsWith(".him")) expect(keys, key).toContain(key.replace(/\.him$/, ".her"));
+    }
+  });
+});
+
+describe("tg", () => {
+  it("resolves the her/him variant by recipient gender", () => {
+    const dict = getDictionary("en");
+    expect(tg(dict, "builder.name.placeholder", "SHE")).toBe("Her name");
+    expect(tg(dict, "builder.name.placeholder", "HE")).toBe("His name");
+  });
+
+  it("interpolates like t", () => {
+    expect(tg(getDictionary("en"), "answers.answeredAt", "HE", { date: "today" })).toBe(
+      "Answered today"
+    );
+  });
 });
 
 describe("format", () => {
@@ -219,6 +243,7 @@ describe("builder seeds", () => {
     for (const locale of LOCALES) {
       const { valid } = validateDraft({
         recipientName: "Maya",
+        recipientGender: "SHE",
         creatorEmail: "maya@example.com",
         mascot: "BEAR",
         gateQuestion: defaultGateQuestion(locale),
@@ -243,5 +268,13 @@ describe("builder seeds", () => {
   it("seeds different text per locale", () => {
     expect(defaultGateQuestion("he")).not.toBe(defaultGateQuestion("en"));
     expect(defaultGateQuestion("ru")).not.toBe(defaultGateQuestion("en"));
+  });
+
+  it("genders the Hebrew gate seed", () => {
+    expect(defaultGateQuestion("he", "SHE")).not.toBe(defaultGateQuestion("he", "HE"));
+    // Verb is gender-free in English — same seed either way.
+    expect(defaultGateQuestion("en", "SHE")).toBe(defaultGateQuestion("en", "HE"));
+    // Unspecified means SHE, the pre-toggle behavior.
+    expect(defaultGateQuestion("he")).toBe(defaultGateQuestion("he", "SHE"));
   });
 });

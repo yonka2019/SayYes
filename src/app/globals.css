@@ -6,6 +6,9 @@
   --color-rose-deep: #e84a7f;
   --color-rose-soft: #ff6ba0;
   --color-rose-ink: #8a2c4d;
+  /* The "him" side of the gender toggle. */
+  --color-sky-deep: #3f8fdc;
+  --color-sky-mist: #eaf4ff;
   --font-cute: var(--font-app), "Heebo", "Segoe UI", Arial, sans-serif;
   --radius-cute: 2.5rem;
 }

@@ -1,5 +1,7 @@
 import type { Locale } from "./i18n/locales";
-import type { MessageKey } from "./i18n/t";
+import type { MessageKey, RecipientGender } from "./i18n/t";
+
+export type { RecipientGender };
 
 export type MascotKind = "BEAR" | "PENGUIN" | "BUNNY" | "CAT" | "FOX" | "PANDA";
 export type InvitationStatus = "PENDING" | "ANSWERED";
@@ -17,6 +19,8 @@ export type DraftQuestion = {
 /** Everything the builder collects before an invitation exists in the DB. */
 export type Draft = {
   recipientName: string;
+  /** her/him — genders the recipient-facing chrome and the seeded gate question. */
+  recipientGender: RecipientGender;
   /** Where the "invitation created" / "invitation answered" emails go. */
   creatorEmail: string;
   mascot: MascotKind | null;

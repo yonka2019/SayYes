@@ -13,6 +13,7 @@ import type { Draft } from "../src/lib/types";
 
 const draft = (over: Partial<Draft> = {}): Draft => ({
   recipientName: "נועה",
+  recipientGender: "SHE",
   creatorEmail: "maya@example.com",
   mascot: "BEAR",
   gateQuestion: defaultGateQuestion("he"),

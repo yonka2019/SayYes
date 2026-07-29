@@ -101,6 +101,7 @@ export async function POST(
   const { subject, text, html } = answeredEmail({
     locale,
     recipientName: invitation.recipientName,
+    gender: invitation.recipientGender,
     mascot: invitation.mascot,
     link,
     recap,

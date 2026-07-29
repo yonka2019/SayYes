@@ -123,4 +123,17 @@ describe("answeredEmail", () => {
     expect(answeredEmail({ locale: "he", ...answered }).html).toContain('align="left"');
     expect(answeredEmail({ locale: "en", ...answered }).html).toContain('align="right"');
   });
+
+  it("genders the verbs for the recipient, defaulting to her", () => {
+    expect(answeredEmail({ locale: "ru", ...answered }).subject).toContain("ответила на");
+    expect(answeredEmail({ locale: "ru", ...answered, gender: "HE" }).subject).toContain(
+      "ответил на"
+    );
+    expect(answeredEmail({ locale: "he", ...answered, gender: "HE" }).subject).toContain(
+      "ענה על"
+    );
+    expect(createdEmail({ locale: "en", ...created, gender: "HE" }).html).toContain(
+      "Send him the link"
+    );
+  });
 });

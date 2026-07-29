@@ -38,6 +38,14 @@ builder as home, footer credit).
   reason. Prefer logical properties (`ms-`, `me-`, `ps-`, `pe-`) over physical
   ones (`ml-`, `mr-`) so a component doesn't quietly break in the direction it
   wasn't tested in.
+- **The recipient has a gender toggle (her/him), and it genders chrome only.**
+  `Invitation.recipientGender` (`SHE` default / `HE`) is picked in the builder.
+  Gendered strings live as `.her`/`.him` twin keys resolved via `tg()` in
+  `src/lib/i18n/t.ts` — the twin-key pair is asserted by a test because `tg()`
+  builds the key untyped. The seeded gate question follows the toggle **only
+  while untouched** — once edited it's content and stays as typed. The Hebrew
+  pleas were deliberately worded gender-neutral (`plea.3` was reworded for
+  this) so the dodge button needs no gender plumbing — keep new pleas neutral.
 - **Creator content is never translated.** `recipientName`, `gateQuestion`,
   question texts and option labels are stored verbatim, in whatever language
   the creator typed. The `seed.*` dictionary keys are only the builder's

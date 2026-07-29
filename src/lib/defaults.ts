@@ -1,5 +1,5 @@
 import type { Locale } from "./i18n/locales";
-import { getDictionary, t } from "./i18n/t";
+import { getDictionary, t, tg, type RecipientGender } from "./i18n/t";
 import type { DraftQuestion } from "./types";
 
 export const MIN_OPTIONS = 2;
@@ -9,9 +9,9 @@ export const MAX_NAME_LENGTH = 40;
 export const MAX_TEXT_LENGTH = 120;
 export const MAX_OPTION_LENGTH = 40;
 
-/** The pre-filled gate question, in the creator's language. */
-export function defaultGateQuestion(locale: Locale): string {
-  return t(getDictionary(locale), "seed.gate");
+/** The pre-filled gate question, in the creator's language, gendered (Hebrew verbs). */
+export function defaultGateQuestion(locale: Locale, gender: RecipientGender = "SHE"): string {
+  return tg(getDictionary(locale), "seed.gate", gender);
 }
 
 /**

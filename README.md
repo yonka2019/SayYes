@@ -63,6 +63,11 @@ wrong-language flash. `/api/*` is never redirected.
   The builder's three pre-filled logistics questions are chrome-derived seeds,
   but the moment they're edited or accepted, they become content.
 
+The builder also has a **her/him toggle**: it genders the chrome that talks
+about the recipient (placeholders, recap titles, the notification emails'
+verbs — Hebrew and Russian conjugate them) and the pre-seeded Hebrew gate
+question while it's untouched. Content is never gendered automatically.
+
 **An invitation owns its locale.** It's set from the builder's URL when the
 invitation is created, and `/{locale}/invite/{token}` redirects to the
 invitation's own locale if they differ — so the recipient never sees Hebrew
@@ -121,7 +126,7 @@ middleware adds the prefix automatically if a request arrives without one.
 
 | Route | Who | What |
 |---|---|---|
-| `/{locale}` | creator | Builder (the home page): name, email, one of six characters, gate question, questions with 2–4 options each, in `{locale}` → generates the link |
+| `/{locale}` | creator | Builder (the home page): her/him toggle, name, email, one of six characters, gate question, questions with 2–4 options each, in `{locale}` → generates the link |
 | `/{locale}/invite/[token]` | recipient | Gate screen → one question at a time → confetti finale, in the invitation's own locale (redirects here if `{locale}` doesn't match). Reopening an answered link shows a read-only recap. Unknown token gets a cute "not found" card. With `?preview=1` (the builder's preview button) the whole flow runs without saving anything — the invitation stays answerable and a badge says so. |
 | `/{locale}/answers/[token]` | creator | One invitation's answers — where the "she answered" email points. Cheering mascot, answered time, full recap. Still pending shows a waiting card with a link through to the invitation; unknown token gets the same cute "not found" card. Redirects to the invitation's own locale. |
 | `POST /api/invitations` | — | Create an invitation from a builder draft, storing its `locale`. Returns `201` on success or `400 { code: "api.emailFailed" }` if the creation email fails to send (the invitation is deleted and the request is rolled back). |

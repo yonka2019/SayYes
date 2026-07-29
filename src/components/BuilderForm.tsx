@@ -12,7 +12,7 @@ import {
   emptyQuestion,
 } from "@/lib/defaults";
 import type { Locale } from "@/lib/i18n/locales";
-import { t, type Dictionary, type MessageKey } from "@/lib/i18n/t";
+import { t, tg, type Dictionary, type MessageKey, type RecipientGender } from "@/lib/i18n/t";
 import { MASCOT_KINDS, MASCOT_NAME_KEY } from "@/lib/mascots";
 import type { Draft, DraftErrors, DraftQuestion, FieldError } from "@/lib/types";
 import { validateDraft } from "@/lib/validation";
@@ -39,6 +39,7 @@ const inputClass =
 export function BuilderForm({ locale, dict }: { locale: Locale; dict: Dictionary }) {
   const [draft, setDraft] = useState<Draft>({
     recipientName: "",
+    recipientGender: "SHE",
     creatorEmail: "",
     mascot: null,
     gateQuestion: defaultGateQuestion(locale),
@@ -53,6 +54,20 @@ export function BuilderForm({ locale, dict }: { locale: Locale; dict: Dictionary
   const nextId = useRef(0);
 
   const patch = (changes: Partial<Draft>) => setDraft((current) => ({ ...current, ...changes }));
+
+  const setGender = (gender: RecipientGender) =>
+    setDraft((current) => {
+      if (current.recipientGender === gender) return current;
+      // An untouched seeded gate question follows the toggle — Hebrew genders
+      // its verb. An edited one is content and stays as typed.
+      const wasSeed =
+        current.gateQuestion === defaultGateQuestion(locale, current.recipientGender);
+      return {
+        ...current,
+        recipientGender: gender,
+        gateQuestion: wasSeed ? defaultGateQuestion(locale, gender) : current.gateQuestion,
+      };
+    });
 
   const patchQuestion = (id: string, changes: Partial<DraftQuestion>) =>
     setDraft((current) => ({
@@ -179,7 +194,9 @@ export function BuilderForm({ locale, dict }: { locale: Locale; dict: Dictionary
           <Mascot kind={chosen} mood="cheer" size={150} label={t(dict, MASCOT_NAME_KEY[chosen])} />
         </div>
         <h2 className="text-2xl font-bold text-rose-deep">{t(dict, "builder.done.title")}</h2>
-        <p className="mt-2 text-rose-ink/70">{t(dict, "builder.done.subtitle")}</p>
+        <p className="mt-2 text-rose-ink/70">
+          {tg(dict, "builder.done.subtitle", draft.recipientGender)}
+        </p>
 
         <div className="mt-5 flex flex-col gap-3 sm:flex-row">
           <input
@@ -199,7 +216,7 @@ export function BuilderForm({ locale, dict }: { locale: Locale; dict: Dictionary
         </div>
 
         <p className="mt-4 rounded-2xl bg-blush px-4 py-3 text-sm text-rose-ink/70">
-          {t(dict, "builder.done.note")}
+          {tg(dict, "builder.done.note", draft.recipientGender)}
         </p>
 
         <div className="mt-6 flex flex-wrap justify-center gap-3">
@@ -229,12 +246,39 @@ export function BuilderForm({ locale, dict }: { locale: Locale; dict: Dictionary
   return (
     <div className="space-y-6">
       <section className="rounded-[2.5rem] bg-white p-6 shadow-[0_18px_50px_-28px_rgba(232,74,127,0.45)]">
+        <div role="group" aria-label={t(dict, "builder.gender.label")} className="mb-6">
+          <Label>{t(dict, "builder.gender.label")}</Label>
+          <div className="flex gap-2">
+            {(["SHE", "HE"] as const).map((gender) => {
+              const selected = draft.recipientGender === gender;
+              // Her is pink, him is blue — the pill wears its own side's color.
+              const on =
+                gender === "SHE"
+                  ? "border-rose-deep bg-blush text-rose-deep"
+                  : "border-sky-deep bg-sky-mist text-sky-deep";
+              return (
+                <button
+                  key={gender}
+                  type="button"
+                  onClick={() => setGender(gender)}
+                  aria-pressed={selected}
+                  className={`rounded-2xl border-2 px-5 py-2 font-bold transition ${
+                    selected ? on : "border-blush-deep bg-white text-rose-ink/60 hover:bg-blush/60"
+                  }`}
+                >
+                  {t(dict, gender === "SHE" ? "builder.gender.her" : "builder.gender.him")}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
         <label className="block">
           <Label>{t(dict, "builder.name.label")}</Label>
           <input
             className={inputClass}
             value={draft.recipientName}
-            placeholder={t(dict, "builder.name.placeholder")}
+            placeholder={tg(dict, "builder.name.placeholder", draft.recipientGender)}
             onChange={(event) => patch({ recipientName: event.target.value })}
           />
         </label>
@@ -256,7 +300,7 @@ export function BuilderForm({ locale, dict }: { locale: Locale; dict: Dictionary
         <FieldErrorText error={visible.creatorEmail} dict={dict} />
 
         <div className="mt-6">
-          <Label>{t(dict, "builder.mascot.label")}</Label>
+          <Label>{tg(dict, "builder.mascot.label", draft.recipientGender)}</Label>
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
             {MASCOT_KINDS.map((kind) => {
               const selected = draft.mascot === kind;

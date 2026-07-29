@@ -5,7 +5,7 @@ import { Mascot } from "@/components/Mascot";
 import { RecapCard } from "@/components/RecapCard";
 import { Sparkles } from "@/components/Sparkles";
 import { DATE_LOCALE, isLocale } from "@/lib/i18n/locales";
-import { getDictionary, t, type Dictionary } from "@/lib/i18n/t";
+import { getDictionary, t, tg, type Dictionary } from "@/lib/i18n/t";
 import { MASCOT_NAME_KEY } from "@/lib/mascots";
 import { prisma } from "@/lib/prisma";
 import type { MascotKind, RecapItem } from "@/lib/types";
@@ -121,13 +121,15 @@ export default async function AnswersPage({
             </h1>
             {answeredLabel && (
               <p className="mt-1 text-center text-sm text-rose-ink/60">
-                {t(dict, "answers.answeredAt", { date: answeredLabel })}
+                {tg(dict, "answers.answeredAt", invitation.recipientGender, {
+                  date: answeredLabel,
+                })}
               </p>
             )}
             <div className="mt-5">
               <RecapCard
                 items={recap}
-                title={t(dict, "answers.recapTitle")}
+                title={tg(dict, "answers.recapTitle", invitation.recipientGender)}
                 emptyText={t(dict, "recap.empty")}
               />
             </div>

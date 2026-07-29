@@ -21,9 +21,16 @@ enum Status {
   ANSWERED
 }
 
+enum RecipientGender {
+  SHE
+  HE
+}
+
 model Invitation {
-  id            String     @id @default(cuid())
-  recipientName String
+  id              String          @id @default(cuid())
+  recipientName   String
+  /// Genders the chrome that talks about the recipient (her/him), not content.
+  recipientGender RecipientGender @default(SHE)
   /// Where the "created" / "answered" notification emails are sent.
   creatorEmail  String     @default("")
   mascot        Mascot

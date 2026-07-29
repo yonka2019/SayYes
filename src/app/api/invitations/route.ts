@@ -33,6 +33,8 @@ function toDraft(body: unknown): Draft | null {
 
   return {
     recipientName: raw.recipientName,
+    // Like locale: an absent or unknown value falls back rather than 400s.
+    recipientGender: raw.recipientGender === "HE" ? "HE" : "SHE",
     creatorEmail: raw.creatorEmail,
     mascot: (raw.mascot as MascotKind | null) ?? null,
     gateQuestion: raw.gateQuestion,
@@ -63,6 +65,7 @@ export async function POST(request: Request) {
   const invitation = await prisma.invitation.create({
     data: {
       recipientName: draft.recipientName.trim(),
+      recipientGender: draft.recipientGender,
       creatorEmail: draft.creatorEmail.trim(),
       mascot: draft.mascot,
       gateQuestion: draft.gateQuestion.trim(),
@@ -86,6 +89,7 @@ export async function POST(request: Request) {
   const { subject, text, html } = createdEmail({
     locale: draft.locale,
     recipientName: invitation.recipientName,
+    gender: draft.recipientGender,
     mascot: invitation.mascot,
     link,
   });
