@@ -262,7 +262,7 @@ export function BuilderForm({ locale, dict }: { locale: Locale; dict: Dictionary
                   type="button"
                   onClick={() => setGender(gender)}
                   aria-pressed={selected}
-                  className={`rounded-2xl border-2 px-5 py-2 font-bold transition ${
+                  className={`flex-1 rounded-2xl border-2 px-5 py-3 text-lg font-bold transition ${
                     selected ? on : "border-blush-deep bg-white text-rose-ink/60 hover:bg-blush/60"
                   }`}
                 >
