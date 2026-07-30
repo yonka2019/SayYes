@@ -3,7 +3,7 @@ import { getDictionary, t, tg, type RecipientGender } from "./i18n/t";
 import type { DraftQuestion } from "./types";
 
 export const MIN_OPTIONS = 2;
-export const MAX_OPTIONS = 4;
+export const MAX_OPTIONS = 6;
 
 export const MAX_NAME_LENGTH = 40;
 export const MAX_TEXT_LENGTH = 120;

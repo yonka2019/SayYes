@@ -73,10 +73,11 @@ describe("validateDraft", () => {
     expect(errors.byQuestion.q1?.options).toBeTruthy();
   });
 
-  it("rejects more than 4 options", () => {
+  it("rejects more than MAX_OPTIONS options", () => {
+    const tooMany = Array.from({ length: MAX_OPTIONS + 1 }, (_, i) => `תשובה ${i + 1}`);
     const { valid, errors } = validateDraft(
       draft({
-        questions: [{ id: "q1", text: "מה נאכל?", options: ["א", "ב", "ג", "ד", "ה"] }],
+        questions: [{ id: "q1", text: "מה נאכל?", options: tooMany }],
       })
     );
     expect(valid).toBe(false);

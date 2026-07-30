@@ -66,7 +66,7 @@ builder as home, footer credit).
   is a no-op. It used to be one button that cycled `he → ru → en`, which hid
   what the options even were. Don't turn it back into a cycle, and don't make it
   a dropdown either — with three locales a popover is pure overhead.
-- **Answers are multiple choice only**, 2–4 options per question (`MIN_OPTIONS` /
+- **Answers are multiple choice only**, 2–6 options per question (`MIN_OPTIONS` /
   `MAX_OPTIONS` in `src/lib/defaults.ts`). No free text, no date picker.
 - **Six characters, and no default** — the creator must actively pick one of
   `BEAR`, `PENGUIN`, `BUNNY`, `CAT`, `FOX`, `PANDA`. `src/lib/mascots.ts` is the
