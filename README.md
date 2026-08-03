@@ -64,9 +64,12 @@ wrong-language flash. `/api/*` is never redirected.
   but the moment they're edited or accepted, they become content.
 
 The builder also has a **her/him toggle**: it genders the chrome that talks
-about the recipient (placeholders, recap titles, the notification emails'
-verbs — Hebrew and Russian conjugate them) and the pre-seeded Hebrew gate
-question while it's untouched. Content is never gendered automatically.
+about the recipient (placeholders, recap titles, the invite page's tab /
+link-preview title — Hebrew "תגידי כן" vs "תגיד כן" — and the notification
+emails' verbs, which Hebrew and Russian conjugate) and the pre-seeded Hebrew
+gate question while it's untouched. Everything the recipient reads that isn't
+gendered by the toggle is worded gender-neutral. Content is never gendered
+automatically.
 
 **An invitation owns its locale.** It's set from the builder's URL when the
 invitation is created, and `/{locale}/invite/{token}` redirects to the

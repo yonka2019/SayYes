@@ -270,6 +270,11 @@ describe("builder seeds", () => {
     expect(defaultGateQuestion("ru")).not.toBe(defaultGateQuestion("en"));
   });
 
+  it("genders the Hebrew invite page title", () => {
+    const dict = getDictionary("he");
+    expect(tg(dict, "meta.title", "SHE")).not.toBe(tg(dict, "meta.title", "HE"));
+  });
+
   it("genders the Hebrew gate seed", () => {
     expect(defaultGateQuestion("he", "SHE")).not.toBe(defaultGateQuestion("he", "HE"));
     // Verb is gender-free in English — same seed either way.

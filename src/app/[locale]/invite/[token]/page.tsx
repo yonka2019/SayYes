@@ -5,12 +5,33 @@ import { Mascot } from "@/components/Mascot";
 import { RecapCard } from "@/components/RecapCard";
 import { Sparkles } from "@/components/Sparkles";
 import { DEFAULT_LOCALE, isLocale, type Locale } from "@/lib/i18n/locales";
-import { getDictionary, t, type Dictionary } from "@/lib/i18n/t";
+import { getDictionary, t, tg, type Dictionary } from "@/lib/i18n/t";
 import { MASCOT_NAME_KEY } from "@/lib/mascots";
 import { prisma } from "@/lib/prisma";
 import type { InviteView, MascotKind, RecapItem } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
+
+/**
+ * The tab / link-preview title follows the recipient toggle — Hebrew genders
+ * the imperative ("תגידי כן" / "תגיד כן"), and a shared link shows this before
+ * anything else. Falls back to the layout's ungendered title when the token
+ * is unknown.
+ */
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string; token: string }>;
+}) {
+  const { token } = await params;
+  const invitation = await prisma.invitation.findUnique({
+    where: { id: token },
+    select: { locale: true, recipientGender: true },
+  });
+  if (!invitation) return {};
+  const owned = isLocale(invitation.locale) ? invitation.locale : DEFAULT_LOCALE;
+  return { title: tg(getDictionary(owned), "meta.title", invitation.recipientGender) };
+}
 
 function MissingInvitation({ dict }: { dict: Dictionary }) {
   return (

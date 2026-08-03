@@ -7,6 +7,10 @@
  */
 export const he = {
   "meta.title": "תגידי כן",
+  // The invite tab/link-preview title follows the recipient toggle — Hebrew
+  // genders the imperative. The bare key above stays for creator-facing pages.
+  "meta.title.her": "תגידי כן",
+  "meta.title.him": "תגיד כן",
   "meta.description": "הזמנות דייט חמודות",
 
   "switcher.label": "שפה",
@@ -56,7 +60,7 @@ export const he = {
   "invite.no": "לא",
   "invite.retry": "ניסיון נוסף",
   "invite.finale.title": "יש!! 🎉",
-  "invite.finale.text": "תודה {name}, אני כבר מתרגש. נתראה!",
+  "invite.finale.text": "תודה {name}, אי אפשר לחכות. נתראה!",
   "invite.missing.title": "אופס, ההזמנה לא נמצאה",
   "invite.missing.text": "כנראה שהקישור לא מדויק. אולי כדאי לבקש אותו שוב?",
   "invite.preview.badge": "תצוגה מקדימה — התשובות לא נשמרות",
@@ -69,7 +73,7 @@ export const he = {
   "plea.1": "בבקשה 🥺",
   "plea.2": "בבקשה בבקשה 😢",
   "plea.3": "אולי בכל זאת? 🥹",
-  "plea.4": "אני כבר נשבר 😭",
+  "plea.4": "הלב שלי נשבר 😭",
   "plea.5": "אנא ממך 🥺💔",
 
   "error.name.required": "צריך למלא שם",

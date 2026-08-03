@@ -43,9 +43,15 @@ builder as home, footer credit).
   Gendered strings live as `.her`/`.him` twin keys resolved via `tg()` in
   `src/lib/i18n/t.ts` — the twin-key pair is asserted by a test because `tg()`
   builds the key untyped. The seeded gate question follows the toggle **only
-  while untouched** — once edited it's content and stays as typed. The Hebrew
-  pleas were deliberately worded gender-neutral (`plea.3` was reworded for
-  this) so the dodge button needs no gender plumbing — keep new pleas neutral.
+  while untouched** — once edited it's content and stays as typed. The invite
+  page's tab / link-preview title is gendered too (`meta.title.her`/`.him` via
+  its own `generateMetadata`; Hebrew "תגידי כן" vs "תגיד כן") — the bare
+  `meta.title` stays on the layout for creator-facing pages. **Every other
+  Hebrew string the recipient reads must be worded gender-neutral** — the
+  pleas (`plea.3` and `plea.4` were both reworded for this) and the finale
+  text (`invite.finale.text`, reworded from masculine "אני כבר מתרגש") — so
+  the dodge button and InviteFlow need no gender plumbing. Keep new
+  recipient-facing strings neutral or give them twins.
 - **Creator content is never translated.** `recipientName`, `gateQuestion`,
   question texts and option labels are stored verbatim, in whatever language
   the creator typed. The `seed.*` dictionary keys are only the builder's
@@ -211,7 +217,7 @@ builder as home, footer credit).
 
 ```bash
 npm test          # dodge + validation + i18n + mascots + mail-content +
-                  # mail-layout units (6 suites, 105 tests)
+                  # mail-layout units (6 suites, 111 tests)
 npm run build     # type check — succeeds without SMTP_PASSWORD; only sending
                    # mail needs it, not the build (send.ts creates its transport
                    # lazily on first sendMail() call, not at module import)

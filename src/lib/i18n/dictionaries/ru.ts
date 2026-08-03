@@ -2,6 +2,8 @@ import type { Dictionary } from "../t";
 
 export const ru: Dictionary = {
   "meta.title": "Скажи да",
+  "meta.title.her": "Скажи да",
+  "meta.title.him": "Скажи да",
   "meta.description": "Милые приглашения на свидание",
 
   "switcher.label": "Язык",
